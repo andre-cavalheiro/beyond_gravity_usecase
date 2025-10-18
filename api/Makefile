@@ -21,11 +21,11 @@ ALEMBIC_MIGRATIONS_DIR = $(ALEMBIC_ROOT_DIR)/migrations/versions
 
 PYTHON_EXECUTABLE := PYTHONPATH=$(PWD)/src $(VENV_PATH)/bin/python -m
 
-DOCKER_IMAGE = andrecavalheiro/fury-api
+DOCKER_IMAGE = andrecavalheiro/beyond-gravity-usecase-api
 DOCKERFILE_PATH = ./deploy/docker/fury_api.Dockerfile
 
 KUBERNETES_CLUSTER = kratos
-KUBERNETES_NAMESPACE = do-random-shit
+KUBERNETES_NAMESPACE = beyond-gravity-usecase
 
 PROD_SECRETS_FILE = .env.prod
 
