@@ -1,0 +1,85 @@
+# General configuration
+# Controls the number of replicas for your application
+replicaCount: 1
+
+# Image configuration for the application
+# Includes repository details, tag, and pull policies
+image:
+  repository: andrecavalheiro/fury-api
+  tag: latest
+  pullPolicy: Always  # Options: Always, IfNotPresent, Never
+
+# Secrets for pulling private images
+imagePullSecrets: []
+
+# Service configuration
+# Exposes your application to the cluster or external traffic
+service:
+  type: ClusterIP
+  port: 3000
+
+# TODO! Probes for application health checks
+livenessProbe:
+  httpGet:
+    path: /
+    port: http
+readinessProbe:
+  httpGet:
+    path: /
+    port: http
+
+# Environment variables from external sources
+# Used for passing sensitive or configurable data to the application
+envFrom:
+  - secretRef:
+      name: fury-api-env
+
+
+# PostgreSQL configuration
+# Enables an integrated PostgreSQL instance for the application
+postgresql:
+  enabled: true
+  auth:
+    existingSecret: postgres-auth
+  service:
+    port: 5432
+
+
+# Autoscaling configuration
+# Automatically adjusts the number of replicas based on resource usage
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 100
+  targetCPUUtilizationPercentage: 80
+  # targetMemoryUtilizationPercentage: 80  # Uncomment to enable memory-based scaling
+
+# Pod-level configurations
+# Add additional metadata or security settings for pods
+podAnnotations: {}
+podLabels: {}
+podSecurityContext: {}  # Define security context for the entire pod
+securityContext: {}       # Define security context for the application container
+
+# Ingress configuration
+# Controls external access to the application through HTTP/HTTPS
+ingress:
+  enabled: false
+
+# Service account configuration
+# A service account is used to provide an identity to your application pods when interacting with Kubernetes API or other services
+serviceAccount:
+  create: true            # Whether to create a new service account
+  automount: true         # Automatically mount service account tokens
+  annotations: {}         # Add custom annotations to the service account
+  name: ""               # Override the default service account name if desired
+
+# Resource limits and requests for the application
+# Helps Kubernetes manage resource allocation
+resources: {}
+
+# Node and scheduling configurations
+# Define where and how pods should be scheduled
+nodeSelector: {}
+tolerations: []
+affinity: {}

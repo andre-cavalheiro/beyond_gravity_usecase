@@ -1,0 +1,47 @@
+exclude: ^(poetry.lock|.idea|.vscode/)
+
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: check-added-large-files
+      - id: check-ast
+      - id: check-builtin-literals
+      - id: check-case-conflict
+      - id: check-docstring-first
+      - id: check-shebang-scripts-are-executable
+      - id: check-merge-conflict
+      - id: check-json
+      - id: check-toml
+      - id: check-xml
+      - id: check-yaml
+        exclude: catalog-info.yaml
+      - id: debug-statements
+      - id: destroyed-symlinks
+      - id: detect-private-key
+      - id: end-of-file-fixer
+      - id: mixed-line-ending
+      - id: pretty-format-json
+        args: ["--autofix", "--no-ensure-ascii", "--no-sort-keys"]
+      - id: trailing-whitespace
+
+  - repo: https://github.com/charliermarsh/ruff-pre-commit
+    rev: v0.8.6
+    hooks:
+      - id: ruff
+        args: [--fix]
+
+  - repo: https://github.com/fredrikaverpil/creosote.git
+    rev: v3.2.0
+    hooks:
+      - id: creosote
+
+  - repo: local
+    hooks:
+      - id: tests
+        name: run tests
+        entry: make test
+        language: system
+        types: [python]
+        pass_filenames: false
+        always_run: true

@@ -1,0 +1,231 @@
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry]
+name = "fury_api"
+description = "Fury is a general purpose templated API for Saas Products"
+version = "0.1.0"
+homepage = "https://github.com/andre-cavalheiro/fury-api/"
+repository = "https://github.com/andre-cavalheiro/fury-api/"
+readme = "README.md"
+authors = ["Andre Cavalheiro <andre.cavalheiro13@gmail.com>"]
+maintainers = ["Andre Cavalheiro <andre.cavalheiro13@gmail.com>"]
+packages = [
+  { include = "fury_api", from = "src" },
+  { include = "fury_common", from = "src" },
+]
+
+[tool.poetry.scripts]
+fury-api = "fury_api:app"
+
+[tool.poetry.dependencies]
+python = ">=3.11,<3.13.1"
+fastapi = "^0.104.1"
+fastapi-pagination = "^0.12.13"
+jsonschema = "^v4.20.0"
+msgspec = "^0.18.4"
+psycopg = { extras = ["binary"], version = "^3.1.12" }
+pydantic = "^1.10.13"
+python-dotenv = "^1.0.0"
+python-jose = "^3.3.0"
+sqlakeyset = "^2.0.1701229837"
+sqlalchemy = "^2.0.23"
+sqlmodel = "^0.0.12"
+structlog = "^23.2.0"
+uvicorn = "^0.24.0.post1"
+cryptography = "^43.0.0"
+requests = "^2.32.3"
+firebase-admin = "^6.6.0"
+
+[tool.poetry.group.dev.dependencies]
+coverage = "^7.3.2"
+creosote = "^3.0.1"
+docker = "^6.1.3"
+greenlet = "^3.0.1"
+httpx = ">=0.25.2"
+pre-commit = "^3.7.1"
+pytest = "^7.4.3"
+pytest-asyncio = "^0.23.2"
+pytest-cov = "^4.1.0"
+pytest-mock = "^3.12.0"
+ruff = "^0.4.10"
+safety = "^2.3.5"
+pyinstrument = "^4.6.2"
+
+[tool.poetry.group.migration.dependencies]
+alembic = { extras = ["tz"], version = "^1.12.1" }
+
+
+[tool.creosote]
+venvs = [".venv"]
+paths = ["src", "tests"]
+deps-file = "pyproject.toml"
+sections = ["tool.poetry.dependencies"]
+exclude-deps = ["psycopg", "sqlakeyset", "jsonschema"]
+
+
+[tool.ruff]
+target-version = "py311"
+line-length = 120
+fix = true
+src = ["src", "tests"]
+
+exclude = [
+  ".bzr",
+  ".direnv",
+  ".eggs",
+  ".git",
+  ".hg",
+  ".mypy_cache",
+  ".nox",
+  ".pants.d",
+  ".pytype",
+  ".ruff_cache",
+  ".svn",
+  ".tox",
+  ".venv",
+  "__pypackages__",
+  "_build",
+  "buck-out",
+  "build",
+  "dist",
+  "node_modules",
+  "venv",
+]
+
+
+[tool.lint]
+select = [
+  "A",      # flake8-builtins
+  "B",      # flake8-bugbear
+  "BLE",    # flake8-blind-except
+  "C4",     # flake8-comprehensions
+  "D",      # pydocstyle
+  "DTZ",    # flake8-datetimez
+  "E",      # Error detected by Pycodestyle
+  "F",      # Error detected by Pyflakes
+  "I",      # isort
+  "ISC",    # flake8-implicit-str-concat
+  "N",      # pep8-naming
+  "Q",      # flake8-quotes
+  "RET",    # flake8-return
+  "RUF",    # ruff,
+  "RUF100", # Report unused noqa directives
+  "S",      # flake8-bandit
+  "SIM",    # flake8-simplify
+  "TID",    # flake8-tidy-imports
+  "TRY",    # tryceratops
+  "UP",     # pyupgrade
+  "W",      # Warning detected by Pycodestyle
+  "YTT",    # flake8-2020
+]
+
+ignore = [
+  # pydocstyle
+  "A003",
+  "D100", # Missing docstring in public module
+  "D101", # Missing docstring in public class
+  "D102", # Missing docstring in public method
+  "D103", # Missing docstring in public function
+  "D104", # Missing docstring in public package
+  "D107", # Missing docstring in init
+  "D415", # Comment first line should end with a period, question mark, or exclamation point
+  "B008",
+  # Possible conflicts with formatter
+  "ISC001", # Implicit string concatenation found
+]
+
+[tool.lint.per-file-ignores]
+"__init__.py" = [
+  "F401", # imports in __init__.py don't need to be used in __init__.py
+]
+"src/fury_api/domain/ai_assistant/tools/db_tools/sql_database.py" = [
+  "UP007",
+  "TRY003",
+  "B028",
+  "B007",
+  "RET504",
+  "S608",
+  "C416",
+  "C402",
+  "D205",
+  "C417",
+  "RET505",
+]
+"src/fury_api/domain/ai_assistant/sql_prompts/*" = ["E501"]
+"tests/*" = [
+  "D",    # docs not needed for tests
+  "S101", # assert should be used in tests
+]
+
+[tool.lint.pydocstyle]
+convention = "google"
+
+[tool.lint.format]
+indent-style = "space"
+line-ending = "lf"
+quote-style = "double"
+skip-magic-trailing-comma = true
+
+[tool.lint.isort]
+known-first-party = ["fury*", "relyio_shared*"]
+split-on-trailing-comma = false
+
+[tool.lint.pep8-naming]
+classmethod-decorators = [
+  "classmethod",
+  "pydantic.model_validator",
+  "pydantic.root_validator",
+  "pydantic.validator",
+  "sqlalchemy.orm.declared_attr.directive",
+  "sqlalchemy.orm.declared_attr",
+]
+
+
+[tool.pytest.ini_options]
+addopts = "-v --cov --cov-report term --cov-report html:htmlcov"
+asyncio_mode = "auto"
+markers = []
+norecursedirs = "tests/helpers"
+pythonpath = ["src"]
+testpaths = ["tests"]
+xfail_strict = true
+
+
+[tool.coverage.run]
+branch = true
+source = ["src/"]
+omit = ["tests/*"]
+
+[tool.coverage.report]
+exclude_lines = [
+  # Have to re-enable the standard pragma
+  "pragma: no cover",
+
+  # Don't complain about missing debug-only code:
+  "def __repr__",
+  "if self.debug",
+  "if debug",
+  "if DEBUG",
+
+  # Don't complain if tests don't hit defensive assertion code:
+  "raise AssertionError",
+  "raise NotImplementedError",
+
+  # Don't complain if non-runnable code isn't run:
+  "if 0:",
+  "if False:",
+  "if __name__ == .__main__.:",
+
+  # Don't complain about abstract methods, they aren't run:
+  "@(abc.)?abstractmethod",
+]
+show_missing = true
+fail_under = 0
+
+
+[[tool.poetry.source]]
+name = "rely"
+url = "https://gitlab.com/api/v4/projects/52779045/packages/pypi/simple"
+priority = "supplemental"

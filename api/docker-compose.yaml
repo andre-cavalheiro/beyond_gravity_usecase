@@ -1,0 +1,53 @@
+version: "3.8"
+
+services:
+  fury-api:
+    image: fury-api:latest
+    container_name: fury-api
+    build:
+      context: .
+      dockerfile: deploy/docker/fury_api.Dockerfile
+    restart: "${DOCKER_RESTART_POLICY:-unless-stopped}"
+    depends_on:
+      - postgres
+    volumes:
+      - ./:/app
+    ports:
+      - "${PORT:-3000}:3000"
+      - "5678:5678"
+    networks:
+      - fury-network
+    environment:
+      # Server
+      FURY_API_SERVER_HOST: "0.0.0.0"
+      FURY_API_SERVER_RELOAD: "true"
+      FURY_API_APP_ENVIRONMENT: "dev"
+      # Database
+      FURY_DB_URL: postgresql+psycopg://postgres:postgres@postgres:5432/beyond-gravity-local
+      # DB Schema
+      FURY_DB_SCHEMA: platform
+      FURY_API_ELASTIC_APM_ENABLED: "false"
+      FURY_API_DEVEX_ENABLED: "true"
+
+  postgres:
+    image: postgres:15
+    container_name: fury-postgres
+    restart: "${DOCKER_RESTART_POLICY:-unless-stopped}"
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - fury-network
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: beyond-gravity-local
+
+networks:
+  fury-network:
+    driver: bridge
+
+volumes:
+  postgres-data:
+    driver: local

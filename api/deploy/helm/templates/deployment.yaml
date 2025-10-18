@@ -1,0 +1,25 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "fury-api.fullname" . }}
+  labels:
+    {{- include "fury-api.labels" . | nindent 4 }}  # Apply common labels to the deployment itself
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "fury-api.selectorLabels" . | nindent 6 }}  # Ensure selector uses the same label helper
+  template:
+    metadata:
+      labels:
+        {{- include "fury-api.labels" . | nindent 8 }}  # Apply labels to the pod template
+    spec:
+      containers:
+        - name: fury-api
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          ports:
+            - containerPort: {{ .Values.service.port }}
+          {{- if .Values.envFrom }}
+          envFrom:
+            {{- toYaml .Values.envFrom | nindent 12 }}
+          {{- end }}

@@ -1,0 +1,4 @@
+# https://openapi-generator.tech/docs/generators/python#config-options
+projectName: fury-api-client
+packageName: fury_api_client
+library: asyncio
