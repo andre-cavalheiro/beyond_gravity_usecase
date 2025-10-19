@@ -68,7 +68,7 @@ def schema_upgrades() -> None:
         sa.Column("rms", sa.Float(), nullable=True),
         sa.Column("gap", sa.Float(), nullable=True),
         sa.Column("occurred_at", sa.DateTime(timezone=True), nullable=True),
-        sa.Column("ecternal_updated_at", sa.DateTime(timezone=True), nullable=True),
+        sa.Column("external_updated_at", sa.DateTime(timezone=True), nullable=True),
         sa.Column("latitude", sa.Float(), nullable=True),
         sa.Column("longitude", sa.Float(), nullable=True),
         sa.Column("depth_km", sa.Float(), nullable=True),

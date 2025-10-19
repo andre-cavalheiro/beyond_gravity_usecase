@@ -52,7 +52,7 @@ EARTHQUAKES_FILTERS_DEFINITION = ModelFilterAndSortDefinition(
         "rms": get_default_ops_for_type(float),
         "gap": get_default_ops_for_type(float),
         "occurred_at": get_default_ops_for_type(datetime),
-        "ecternal_updated_at": get_default_ops_for_type(datetime),
+        "external_updated_at": get_default_ops_for_type(datetime),
         "latitude": get_default_ops_for_type(float),
         "longitude": get_default_ops_for_type(float),
         "depth_km": get_default_ops_for_type(float),
@@ -79,7 +79,7 @@ EARTHQUAKES_FILTERS_DEFINITION = ModelFilterAndSortDefinition(
         "rms",
         "gap",
         "occurred_at",
-        "ecternal_updated_at",
+        "external_updated_at",
         "latitude",
         "longitude",
         "depth_km",
@@ -100,13 +100,13 @@ async def get_items(
 
 @earthquake_router.get(paths.EARTHQUAKES_ID, response_model=EarthquakeRead)
 async def get_item(
-    eearthquake_id_: int,
+    id_: int,
     earthquake_service: Annotated[
         EarthquakesService,
         Depends(get_service(ServiceType.EARTHQUAKES, read_only=True, uow=Depends(get_uow_any_tenant))),
     ],
 ) -> EarthquakeRead:
-    earthquake = await earthquake_service.get_item(earthquake_id_)
+    earthquake = await earthquake_service.get_item(id_)
     if not earthquake:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Earthquake not found")
     return earthquake

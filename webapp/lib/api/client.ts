@@ -1,6 +1,6 @@
 import axios, { type AxiosError } from "axios"
-import type { Organization, User, PaginatedResponse  } from "./types"
-import { mockOrganization, mockUser } from "./mocks"
+import type { Organization, User, PaginatedResponse, Earthquake } from "./types"
+import { mockOrganization, mockUser, mockEarthquake } from "./mocks"
 import { env } from "@/app/env"
 import { auth } from "@/lib/auth/firebase"
 
@@ -89,6 +89,77 @@ export async function createOrganization(name: string): Promise<Organization> {
     return response.data
   } catch (error) {
     console.error("Error creating organization:", error)
+    throw error
+  }
+}
+
+type GetEarthquakesParams = {
+  cursor?: string | null
+  filters?: Record<string, unknown>
+}
+
+const EARTHQUAKE_PAGE_SIZE = 20
+
+export async function getEarthquakes(
+  options?: GetEarthquakesParams
+): Promise<PaginatedResponse<Earthquake>> {
+  const { cursor, filters } = options ?? {}
+
+  if (env.NEXT_PUBLIC_USE_MOCKS) {
+    return {
+      items: [mockEarthquake],
+      total: 1,
+      size: EARTHQUAKE_PAGE_SIZE,
+      current_page: null,
+      next_page: null,
+      previous_page: null,
+      current_page_backwards: null,
+    }
+  }
+
+  try {
+    const searchParams = new URLSearchParams()
+    searchParams.set("includeTotal", "true")
+    searchParams.set("size", String(EARTHQUAKE_PAGE_SIZE))
+
+    if (cursor) {
+      searchParams.set("cursor", cursor)
+    }
+    if (filters) {
+      Object.entries(filters).forEach(([key, value]) => {
+        if (value !== undefined && value !== null) {
+          searchParams.set(key, String(value))
+        }
+      })
+    }
+
+    const response = await api.get<PaginatedResponse<Earthquake>>(
+      "/earthquakes",
+      {
+        params: searchParams,
+      },
+    )
+    return response.data
+  } catch (error) {
+    console.error("Error getting earthquakes:", error)
+    throw error
+  }
+}
+
+export async function getEarthquake(
+  id: string | number
+): Promise<Earthquake> {
+  if (env.NEXT_PUBLIC_USE_MOCKS) {
+    return mockEarthquake
+  }
+
+  try {
+    const response = await api.get<Earthquake>(
+      `/earthquakes/${encodeURIComponent(String(id))}`
+    )
+    return response.data
+  } catch (error) {
+    console.error(`Error getting earthquake ${id}:`, error)
     throw error
   }
 }

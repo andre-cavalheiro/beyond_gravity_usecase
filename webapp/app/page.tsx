@@ -170,7 +170,7 @@ export default function LandingPage() {
         <div className="flex max-w-3xl flex-col items-center gap-8 text-center">
           <h1 className="text-4xl font-semibold leading-tight tracking-tight drop-shadow-sm sm:text-5xl md:text-6xl">
             <span className="block bg-gradient-to-r from-sky-300 via-indigo-400 to-purple-400 bg-clip-text text-transparent">
-              Beyond Gravity
+              Beyond Gravity's
             </span>
             <span className="mt-2 block text-slate-200">Earthquake Monitoring System</span>
           </h1>

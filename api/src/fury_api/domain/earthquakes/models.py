@@ -44,7 +44,7 @@ class EarthquakeBase(BaseSQLModel):
         sa_column=sa.Column(sa.DateTime(timezone=True)),
         description="Event origin time.",
     )
-    ecternal_updated_at: Optional[datetime] = Field(
+    external_updated_at: Optional[datetime] = Field(
         default=None,
         sa_column=sa.Column(sa.DateTime(timezone=True)),
         description="Last provider update timestamp.",

@@ -5,7 +5,7 @@ import clsx from "clsx";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { useTheme } from "next-themes";
-import { Home, SlidersHorizontal, Menu, ChevronsLeft, ChevronsRight, CreditCard, Sun, Moon, LogOut, ChevronsUpDown } from "lucide-react";
+import { Home, Menu, ChevronsLeft, ChevronsRight, CreditCard, Sun, Moon, LogOut, ChevronsUpDown } from "lucide-react";
 
 import { useAuth } from "@/lib/auth/context"
 import { Button } from "@/components/ui/button";
@@ -22,8 +22,7 @@ export function Sidebar() {
   const pathname = usePathname();
 
   const navItems = [
-    { href: "/home", label: "Home", icon: Home },
-    { href: "/search", label: "Search Settings", icon: SlidersHorizontal },
+    { href: "/home", label: "Home", icon: Home }
   ];
 
   const SidebarContent = (
