@@ -23,6 +23,7 @@ export const mockEarthquake: Earthquake = {
   title: "M 4.6 - Mockville, Earth",
   detailUrl: "https://example.com/detail/mock-1",
   infoUrl: "https://example.com/info/mock-1",
+  ciimGeoImageUrl: "https://example.com/images/mock-1-ciim-geo.jpg",
   significance: 112,
   tsunami: false,
   feltReports: 5,

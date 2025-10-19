@@ -31,6 +31,7 @@ export interface Earthquake {
   title: string
   detailUrl: string
   infoUrl: string
+  ciimGeoImageUrl: string | null
   significance: number
   tsunami: boolean
   feltReports: number | null

@@ -28,6 +28,7 @@ class EarthquakeBase(BaseSQLModel):
     title: str = Field(sa_type=sa.String(length=255))
     detail_url: Optional[str] = Field(default=None, sa_type=sa.String(length=512))
     info_url: Optional[str] = Field(default=None, sa_type=sa.String(length=512))
+    ciim_geo_image_url: Optional[str] = Field(default=None, sa_type=sa.String(length=1024))
     
     significance: Optional[int] = Field(default=None, sa_type=sa.Integer)
     tsunami: Optional[bool] = Field(default=None, sa_type=sa.Boolean)

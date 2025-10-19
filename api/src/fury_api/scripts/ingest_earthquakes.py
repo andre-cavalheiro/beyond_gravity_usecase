@@ -88,6 +88,76 @@ async def fetch_earthquake_features(
     return features
 
 
+def _extract_ciim_geo_image_url(detail_payload: dict[str, Any]) -> Optional[str]:
+    properties = detail_payload.get("properties")
+    if not isinstance(properties, dict):
+        return None
+
+    products = properties.get("products")
+    if not isinstance(products, dict):
+        return None
+
+    dyfi_products = products.get("dyfi")
+    if not isinstance(dyfi_products, list):
+        return None
+
+    fallback_url: Optional[str] = None
+    for dyfi_product in dyfi_products:
+        if not isinstance(dyfi_product, dict):
+            continue
+
+        contents = dyfi_product.get("contents")
+        if not isinstance(contents, dict):
+            continue
+
+        for key, value in contents.items():
+            if not isinstance(key, str):
+                continue
+
+            key_lower = key.lower()
+            if not key_lower.endswith(".jpg"):
+                continue
+
+            if not isinstance(value, dict):
+                continue
+
+            url_str = _to_str(value.get("url"), max_length=1024)
+            if url_str is None:
+                continue
+
+            if key_lower.endswith("ciim_geo.jpg"):
+                return url_str
+
+            if fallback_url is None:
+                fallback_url = url_str
+
+    return fallback_url
+
+
+async def fetch_ciim_geo_image_url(
+    client: httpx.AsyncClient,
+    detail_url: Optional[str],
+) -> Optional[str]:
+    if not detail_url:
+        return None
+
+    try:
+        response = await client.get(detail_url)
+        response.raise_for_status()
+    except httpx.HTTPError:
+        return None
+
+    try:
+        payload = response.json()
+    except ValueError:
+        return None
+
+    if not isinstance(payload, dict):
+        return None
+
+    return _extract_ciim_geo_image_url(payload)
+
+
 def feature_to_model(feature: dict[str, Any]) -> Earthquake | None:
     properties = feature.get("properties") or {}
     geometry = feature.get("geometry") or {}
@@ -160,14 +230,21 @@ async def run_ingestion(
 
     seen_ids: set[str | None] = set()
     earthquakes: list[Earthquake] = []
-    for feature in features:
-        earthquake = feature_to_model(feature)
-        if earthquake is None:
-            continue
-        if earthquake.external_id in seen_ids:
-            continue
-        seen_ids.add(earthquake.external_id)
-        earthquakes.append(earthquake)
+    async with httpx.AsyncClient(timeout=httpx.Timeout(30.0)) as detail_client:
+        for feature in features:
+            earthquake = feature_to_model(feature)
+            if earthquake is None:
+                continue
+            if earthquake.external_id in seen_ids:
+                continue
+
+            seen_ids.add(earthquake.external_id)
+
+            image_url = await fetch_ciim_geo_image_url(detail_client, earthquake.detail_url)
+            if image_url is not None:
+                earthquake.ciim_geo_image_url = image_url
+
+            earthquakes.append(earthquake)
 
     return await persist_earthquakes(
         earthquakes,

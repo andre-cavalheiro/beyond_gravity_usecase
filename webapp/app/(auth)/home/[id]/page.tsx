@@ -105,6 +105,7 @@ export default function EarthquakeDetailPage() {
   const [earthquake, setEarthquake] = useState<Earthquake | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [imageLoadError, setImageLoadError] = useState(false)
 
   useEffect(() => {
     if (!earthquakeId) {
@@ -119,6 +120,7 @@ export default function EarthquakeDetailPage() {
         const data = await getEarthquake(earthquakeId)
         if (!isActive) return
         setEarthquake(data)
+        setImageLoadError(false)
       } catch {
         if (!isActive) return
         setError("We couldn't load this earthquake right now. Please try again.")
@@ -145,7 +147,7 @@ export default function EarthquakeDetailPage() {
       {
         label: "External ID",
         value: formatText(earthquake.externalId),
-      },      
+      },
       {
         label: "Occurred At",
         value: formatEarthquakeDate(earthquake.occurredAt),
@@ -193,7 +195,7 @@ export default function EarthquakeDetailPage() {
         ) : (
           "—"
         ),
-      }
+      },
     ]
 
     const impactItems: DetailItem[] = [
@@ -314,53 +316,78 @@ export default function EarthquakeDetailPage() {
         )}
 
         {!isLoading && !error && earthquake && (
-          <Accordion
-            type="multiple"
-            className="flex flex-col gap-6"
-          >
-            {detailGroups.map((group) => {
-              const rows: Array<[DetailItem, DetailItem | undefined]> = []
-              for (let index = 0; index < group.items.length; index += 2) {
-                rows.push([group.items[index], group.items[index + 1]])
-              }
+          <>
+            {earthquake.ciimGeoImageUrl && !imageLoadError && (
+              <div className="mb-10 flex justify-center px-4 py-6">
+                <img
+                  src={earthquake.ciimGeoImageUrl}
+                  alt={`Community intensity map for ${earthquake.title}`}
+                  className="h-40 w-auto object-contain"
+                  onError={() => setImageLoadError(true)}
+                />
+              </div>
+            )}
 
-              return (
-                <AccordionItem
-                  key={group.id}
-                  value={group.id}
-                  className="overflow-hidden rounded-xl border border-border/40 bg-card shadow-sm"
-                >
-                  <AccordionTrigger className="bg-muted/30 px-6 text-left text-base font-semibold leading-6 hover:bg-muted/60 min-h-[3.5rem]">
-                    {group.title}
-                  </AccordionTrigger>
-                  <AccordionContent className="px-0 py-0">
-                    <div className="overflow-x-auto border-t border-border/40 bg-background/40 px-6 py-4">
-                      <Table>
-                        <TableBody>
-                          {rows.map(([left, right], rowIndex) => (
-                            <TableRow key={`${group.id}-${rowIndex}`}>
-                              <TableCell className="w-48 align-top text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                                {left.label}
-                              </TableCell>
-                              <TableCell className="align-top text-base text-foreground">
-                                {left.value}
-                              </TableCell>
-                              <TableCell className="w-48 align-top text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                                {right?.label ?? ""}
-                              </TableCell>
-                              <TableCell className="align-top text-base text-foreground">
-                                {right?.value ?? "—"}
-                              </TableCell>
-                            </TableRow>
-                          ))}
-                        </TableBody>
-                      </Table>
-                    </div>
-                  </AccordionContent>
-                </AccordionItem>
-              )
-            })}
-          </Accordion>
+            {earthquake.ciimGeoImageUrl && imageLoadError && (
+              <div className="mb-8 rounded-md border border-border/40 bg-muted/20 px-4 py-3 text-sm text-muted-foreground">
+                We couldn't load the intensity map image.
+              </div>
+            )}
+
+            {!earthquake.ciimGeoImageUrl && (
+              <div className="mb-8 rounded-md border border-border/40 bg-muted/20 px-4 py-3 text-sm text-muted-foreground">
+                Earthquake CIIM geo image not available.
+              </div>
+            )}
+
+            <Accordion
+              type="multiple"
+              className="mt-6 flex flex-col gap-6"
+            >
+              {detailGroups.map((group) => {
+                const rows: Array<[DetailItem, DetailItem | undefined]> = []
+                for (let index = 0; index < group.items.length; index += 2) {
+                  rows.push([group.items[index], group.items[index + 1]])
+                }
+
+                return (
+                  <AccordionItem
+                    key={group.id}
+                    value={group.id}
+                    className="overflow-hidden rounded-xl border border-border/40 bg-card shadow-sm"
+                  >
+                    <AccordionTrigger className="bg-muted/30 px-6 text-left text-base font-semibold leading-6 hover:bg-muted/60 min-h-[3.5rem]">
+                      {group.title}
+                    </AccordionTrigger>
+                    <AccordionContent className="px-0 py-0">
+                      <div className="overflow-x-auto border-t border-border/40 bg-background/40 px-6 py-4">
+                        <Table>
+                          <TableBody>
+                            {rows.map(([left, right], rowIndex) => (
+                              <TableRow key={`${group.id}-${rowIndex}`}>
+                                <TableCell className="w-48 align-top text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                                  {left.label}
+                                </TableCell>
+                                <TableCell className="align-top text-base text-foreground">
+                                  {left.value}
+                                </TableCell>
+                                <TableCell className="w-48 align-top text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                                  {right?.label ?? ""}
+                                </TableCell>
+                                <TableCell className="align-top text-base text-foreground">
+                                  {right?.value ?? "—"}
+                                </TableCell>
+                              </TableRow>
+                            ))}
+                          </TableBody>
+                        </Table>
+                      </div>
+                    </AccordionContent>
+                  </AccordionItem>
+                )
+              })}
+            </Accordion>
+          </>
         )}
       </CardContent>
     </Card>
