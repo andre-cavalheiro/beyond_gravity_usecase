@@ -3,6 +3,14 @@ import React from "react"
 import { AuthProvider } from "@/lib/auth/provider"
 import { ThemeProvider } from "@/components/theme-provider"
 
+export const metadata = {
+  title: "Beyond Gravity",
+  description: "Earthquake monitoring and analysis platform",
+  icons: {
+    icon: "/beyondgravity.ico",
+  },
+}
+
 export default function RootLayout({
   children,
 }: {
