@@ -16,6 +16,7 @@ class ServiceType(Enum):
     USERS = "users"
     PLUGINS = "plugins"
     EARTHQUAKES = "earthquakes"
+    IMAGE_TRANSFORMATIONS = "image_transformations"
 
 
 ServiceDependency = NamedTuple("ServiceDependency", [("service_type", ServiceType), ("kwargs", dict[str, Any])])

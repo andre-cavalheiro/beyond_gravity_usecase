@@ -26,6 +26,7 @@ from fury_api.lib.db.base import Identifier
 from fury_api.lib.pagination import CursorPage
 from .services import EarthquakesService
 from fury_api.lib.model_filters import ModelFilterAndSortDefinition, get_default_ops_for_type
+from fury_api.domain.image_transformations.services import ImageTransformationsService
 
 earthquake_router = APIRouter()
 
@@ -116,7 +117,8 @@ async def get_item(
 async def get_ciim_geo_3d_image(
     id_: int,
     earthquake_service: Annotated[EarthquakesService, Depends(get_service(ServiceType.EARTHQUAKES, read_only=True, uow=Depends(get_uow_any_tenant)))],
-    delay: Optional[float] = 1,
+    image_transformation_service: Annotated[ImageTransformationsService, Depends(get_service(ServiceType.IMAGE_TRANSFORMATIONS, uow=Depends(get_uow_any_tenant)))],
+    min_delay: Optional[float] = 10,
 ) -> bytes:
     earthquake = await earthquake_service.get_item(id_)
     if not earthquake:
@@ -126,14 +128,14 @@ async def get_ciim_geo_3d_image(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="CIIM geo image not found")
 
     try:
-        png_bytes = await earthquake_service.generate_ciim_geo_heightmap_png(
+        png_bytes = await image_transformation_service.generate_ciim_geo_heightmap_png(
             earthquake.ciim_geo_image_url
         )
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
 
-    if delay and delay > 0:
-        await asyncio.sleep(delay)
+    if min_delay and min_delay > 0:
+        await asyncio.sleep(min_delay)
 
     return Response(
         content=png_bytes,
