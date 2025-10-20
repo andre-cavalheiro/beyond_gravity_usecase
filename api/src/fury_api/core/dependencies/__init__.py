@@ -1,7 +1,7 @@
 from .background_tasks import AsyncBackgroundTasks, get_async_background_tasks
 from .filters import FiltersAndSortsParser, get_models_filters_parser_factory
 from .services import ServiceType, SqlService, get_service, get_service_admin
-# from .clients import ()
+from .clients import get_usgs_client
 from .unit_of_work import (
     UnitOfWork,
     get_uow,
@@ -22,7 +22,7 @@ __all__ = [
     "get_uow_tenant",
     "get_uow_tenant_ro",
     # clients
-    # ...
+    "get_usgs_client",
     # filters
     "FiltersAndSortsParser",
     "get_models_filters_parser_factory",

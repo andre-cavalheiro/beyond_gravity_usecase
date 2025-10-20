@@ -92,7 +92,8 @@ class USGSEarthquakeClient:
         *,
         min_magnitude: float | None = None,
         limit: int | None = None,
-        search_ciim_geo_image_url: bool = False,
+        search_ciim_geo_image_url: bool = True,
+        enforce_ciim_geo_image_url: bool = True,
     ) -> list[Earthquake]:
         features = await self.fetch_earthquake_features(
             start_date,
@@ -115,7 +116,8 @@ class USGSEarthquakeClient:
                 image_url = await self.fetch_ciim_geo_image_url(earthquake.detail_url)
                 if image_url is not None:
                     earthquake.ciim_geo_image_url = image_url
-
+                elif enforce_ciim_geo_image_url:
+                    continue
             earthquakes.append(earthquake)
 
         return earthquakes

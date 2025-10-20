@@ -7,13 +7,14 @@ from typing import Optional
 from sqlmodel import Field
 from fury_api.lib.db.base import BaseSQLModel, BigIntIDModel
 
-__all__ = ["Earthquake", "EarthquakeCreate", "EarthquakeRead"]
+__all__ = ["Earthquake", "EarthquakeCreate", "EarthquakeRead", "IngestPayload", "IngestResponse"]
 
 class EarthquakeBase(BaseSQLModel):
     external_id: Optional[str] = Field(
         default=None,
         sa_type=sa.String(length=32),
         index=True,
+        unique=True,
         description="Provider-specific identifier, e.g. 'us6000rhpf'.",
     )
     magnitude: Optional[float] = Field(default=None, sa_type=sa.Float)
@@ -79,3 +80,16 @@ class EarthquakeRead(EarthquakeBase):
 
 class EarthquakeCreate(EarthquakeBase):
     title: str = Field()
+
+class IngestPayload(BaseSQLModel):
+    start_date: str
+    end_date: str
+    min_magnitude: Optional[float] = None
+    limit: Optional[int] = None
+    search_ciim_geo_image_url: bool = False
+    enforce_ciim_geo_image_url: bool = True
+
+class IngestResponse(BaseSQLModel):
+    count: int
+    
+    

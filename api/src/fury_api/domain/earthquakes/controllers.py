@@ -1,6 +1,6 @@
 import asyncio
 from datetime import datetime
-from typing import Annotated, Optional
+from typing import Annotated, List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Response, status
 
@@ -14,12 +14,15 @@ from fury_api.core.dependencies import (
     get_uow_any_tenant,
     get_uow_tenant,
     get_uow_tenant_ro,
+    get_usgs_client,
 )
 from . import exceptions
 from .models import (
     Earthquake,
     EarthquakeCreate,
     EarthquakeRead,
+    IngestPayload,
+    IngestResponse,
 )
 from fury_api.core.security import get_current_user
 from fury_api.lib.db.base import Identifier
@@ -27,6 +30,7 @@ from fury_api.lib.pagination import CursorPage
 from .services import EarthquakesService
 from fury_api.lib.model_filters import ModelFilterAndSortDefinition, get_default_ops_for_type
 from fury_api.domain.image_transformations.services import ImageTransformationsService
+from fury_api.lib.usgs_client import USGSEarthquakeClient
 
 earthquake_router = APIRouter()
 
@@ -142,3 +146,27 @@ async def get_ciim_geo_3d_image(
         media_type="image/png",
         headers={"Cache-Control": "public, max-age=86400"},
     )
+
+
+@earthquake_router.post(paths.EARTHQUAKES_INGEST, response_model=IngestResponse)
+async def ingest_earthquakes_from_usgs(
+    ingest_payload: IngestPayload,
+    earthquake_service: Annotated[EarthquakesService, Depends(get_service(ServiceType.EARTHQUAKES, read_only=False, uow=Depends(get_uow_any_tenant)))],
+    usgs_client: Annotated[USGSEarthquakeClient, Depends(get_usgs_client)],
+) -> IngestResponse:
+    async with usgs_client:
+        earthquakes = await usgs_client.fetch_earthquakes(
+            ingest_payload.start_date,
+            ingest_payload.end_date,
+            min_magnitude=ingest_payload.min_magnitude,
+            limit=ingest_payload.limit,
+            search_ciim_geo_image_url=ingest_payload.search_ciim_geo_image_url,
+            enforce_ciim_geo_image_url=ingest_payload.enforce_ciim_geo_image_url,
+        )
+    
+    if not earthquakes:
+        return IngestResponse(count=0)
+    
+    await earthquake_service.create_items(earthquakes)
+    return IngestResponse(count=len(earthquakes))
+
