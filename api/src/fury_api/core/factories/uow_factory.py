@@ -18,7 +18,7 @@ class UnitOfWorkFactory:
         Returns:
             A new UnitOfWork instance
         """
-        session_factory = async_session_ro if (read_only and config.api.ALLOW_USE_READ_ONLY_DATABASE) else async_session
+        session_factory = async_session_ro if read_only else async_session
         if session_factory.kw.get("info", {}).get("read_only"):
             read_only = True
 

@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import asyncio
 import hashlib
-from collections.abc import AsyncGenerator
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 from urllib.parse import urlparse
@@ -48,6 +47,20 @@ class ImageTransformationsService(GenericService):
             gradient_blend=gradient_blend,
         )
 
+    async def generate_ciim_geo_heightmap_png_from_path(
+        self,
+        image_path: str | Path,
+        *,
+        gradient_blend: float = 0.35,
+    ) -> bytes:
+        """
+        Local-path variant useful for CLI tooling/tests.
+        """
+        return await asyncio.to_thread(
+            self._transform_path_to_heightmap_png_bytes,
+            image_path,
+            gradient_blend=gradient_blend,
+        )
 
     def _cache_path_for(self, url: str) -> Path:
         digest = hashlib.sha1(url.encode("utf-8")).hexdigest()
@@ -135,6 +148,26 @@ class ImageTransformationsService(GenericService):
         URL -> bytes -> grayscale -> Sobel-based heightmap (uint8) -> PNG bytes
         """
         raw = self._fetch_bytes(url)
+        return self._raw_bytes_to_heightmap_png_bytes(raw, gradient_blend=gradient_blend)
+
+    def _transform_path_to_heightmap_png_bytes(
+        self,
+        image_path: str | Path,
+        *,
+        gradient_blend: float = 0.35,
+    ) -> bytes:
+        path = Path(image_path).expanduser().resolve()
+        if not path.exists() or not path.is_file():
+            raise ValueError(f"Image path not found: {path}")
+
+        max_bytes = 15 * 1024 * 1024
+        raw = path.read_bytes()
+        if len(raw) > max_bytes:
+            raise ValueError(f"File too large: {len(raw)} bytes")
+
+        return self._raw_bytes_to_heightmap_png_bytes(raw, gradient_blend=gradient_blend)
+
+    def _raw_bytes_to_heightmap_png_bytes(self, raw: bytes, *, gradient_blend: float) -> bytes:
         gray = self._decode_image_gray(raw)
         height_img = self._sobel_heightmap_uint8(gray, gradient_blend=gradient_blend)
         return self._encode_png_bytes(height_img)
