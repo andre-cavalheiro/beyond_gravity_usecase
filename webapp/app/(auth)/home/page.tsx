@@ -617,7 +617,7 @@ export default function HomePage() {
                     htmlFor="ingest-min-magnitude"
                     className="text-sm font-medium text-foreground"
                   >
-                    Min magnitude
+                    Min magnitude (optional)
                   </label>
                   <input
                     id="ingest-min-magnitude"
