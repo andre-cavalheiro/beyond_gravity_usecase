@@ -155,15 +155,17 @@ function ParticleField() {
 }
 
 export default function LandingPage() {
-  const { userAuth, signIn, loading } = useAuth()
+  const { userAuth, user, organization, signIn, loading } = useAuth()
   const router = useRouter()
-  const isBootstrapping = loading && Boolean(userAuth)
+  const isAuthenticated = Boolean(userAuth && user && organization)
+  const isBootstrapping =
+    loading || (userAuth && (!user || !organization))
 
   useEffect(() => {
-    if (!loading && userAuth) {
+    if (isAuthenticated) {
       router.replace("/home")
     }
-  }, [loading, userAuth, router])
+  }, [isAuthenticated, router])
 
   if (isBootstrapping) {
     return (

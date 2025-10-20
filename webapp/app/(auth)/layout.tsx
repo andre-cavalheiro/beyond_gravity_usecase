@@ -13,13 +13,15 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
   const router = useRouter()
   const [showBanner, setShowBanner] = useState(false)
   const bannerStorageKey = "demoVideoBanner:dismissed"
+  const [hasRedirected, setHasRedirected] = useState(false)
 
   useEffect(() => {
     // redirect immediately if not authenticated or org is missing
-    if (!loading && (!userAuth || !user || !organization)) {
+    if (!loading && !hasRedirected && (!userAuth || !user || !organization)) {
+      setHasRedirected(true)
       router.replace("/") // force them back to landing page
     }
-  }, [userAuth, user, organization, loading, router])
+  }, [userAuth, user, organization, loading, router, hasRedirected])
 
   useEffect(() => {
     const dismissed = typeof window !== "undefined" ? window.localStorage.getItem(bannerStorageKey) : "false"
