@@ -351,3 +351,18 @@ tag:
 	if [ "$$confirm" != "y" ]; then echo "Aborted."; exit 1; fi; \
 	git tag -a $$version -m "$$msg"; \
 	git push origin --tags
+
+
+################################################################################
+# Production Access
+################################################################################
+.PHONY: prod-db-port-forward
+prod-db-port-forward:
+	$(MAKE) validate-context  && \
+	kubectl port-forward svc/fury-api-postgresql 5432:5432
+
+.PHONY: prod-logs
+prod-logs:
+	@$(MAKE) validate-context
+	@echo "Tailing logs for pods with app.kubernetes.io/name=$(HELM_CHART_NAME) ..."
+	@kubectl logs -f -l app.kubernetes.io/name=$(HELM_CHART_NAME) --tail=100

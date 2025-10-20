@@ -1,11 +1,13 @@
 from __future__ import annotations
 
+from http import HTTPStatus
 from datetime import datetime, timezone
 from typing import Any, Iterable, Optional
 
 import httpx
 
 from fury_api.domain.earthquakes.models import Earthquake
+from fury_api.domain.earthquakes.exceptions import USGSRateLimitError
 
 USGS_ENDPOINT = "https://earthquake.usgs.gov/fdsnws/event/1/query"
 
@@ -56,8 +58,14 @@ class USGSEarthquakeClient:
         if limit is not None:
             params["limit"] = str(limit)
 
-        response = await self._http_client.get(self._base_url, params=params)
-        response.raise_for_status()
+        try:
+            response = await self._http_client.get(self._base_url, params=params)
+            response.raise_for_status()
+        except httpx.HTTPStatusError as exc:
+            if exc.response is not None and exc.response.status_code == HTTPStatus.TOO_MANY_REQUESTS:
+                retry_after = exc.response.headers.get("Retry-After")
+                raise USGSRateLimitError(retry_after=retry_after) from exc
+            raise
         payload = response.json()
 
         features = payload.get("features", [])

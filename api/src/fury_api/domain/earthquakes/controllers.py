@@ -16,7 +16,7 @@ from fury_api.core.dependencies import (
     get_uow_tenant_ro,
     get_usgs_client,
 )
-from . import exceptions
+from .exceptions import USGSRateLimitError
 from .models import (
     Earthquake,
     EarthquakeCreate,
@@ -154,19 +154,27 @@ async def ingest_earthquakes_from_usgs(
     earthquake_service: Annotated[EarthquakesService, Depends(get_service(ServiceType.EARTHQUAKES, read_only=False, uow=Depends(get_uow_any_tenant)))],
     usgs_client: Annotated[USGSEarthquakeClient, Depends(get_usgs_client)],
 ) -> IngestResponse:
-    async with usgs_client:
-        earthquakes = await usgs_client.fetch_earthquakes(
-            ingest_payload.start_date,
-            ingest_payload.end_date,
-            min_magnitude=ingest_payload.min_magnitude,
-            limit=ingest_payload.limit,
-            search_ciim_geo_image_url=ingest_payload.search_ciim_geo_image_url,
-            enforce_ciim_geo_image_url=ingest_payload.enforce_ciim_geo_image_url,
-        )
-    
+    if ingest_payload.start_date > ingest_payload.end_date:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Start date must be before end date")
+
+    try:
+        async with usgs_client:
+            earthquakes = await usgs_client.fetch_earthquakes(
+                ingest_payload.start_date,
+                ingest_payload.end_date,
+                min_magnitude=ingest_payload.min_magnitude,
+                limit=ingest_payload.limit,
+                search_ciim_geo_image_url=ingest_payload.search_ciim_geo_image_url,
+                enforce_ciim_geo_image_url=ingest_payload.enforce_ciim_geo_image_url,
+            )
+    except USGSRateLimitError as exc:
+        detail = "USGS API rate limit exceeded"
+        if exc.retry_after:
+            detail = f"{detail}. Retry after {exc.retry_after} seconds."
+        raise HTTPException(status_code=status.HTTP_429_TOO_MANY_REQUESTS, detail=detail) from exc
+
     if not earthquakes:
         return IngestResponse(count=0)
-    
-    count =await earthquake_service.create_items(earthquakes)
-    return IngestResponse(count=count)
 
+    count = await earthquake_service.create_items(earthquakes)
+    return IngestResponse(count=count)
