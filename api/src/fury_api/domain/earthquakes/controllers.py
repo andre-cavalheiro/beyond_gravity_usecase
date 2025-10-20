@@ -167,6 +167,6 @@ async def ingest_earthquakes_from_usgs(
     if not earthquakes:
         return IngestResponse(count=0)
     
-    await earthquake_service.create_items(earthquakes)
-    return IngestResponse(count=len(earthquakes))
+    count =await earthquake_service.create_items(earthquakes)
+    return IngestResponse(count=count)
 

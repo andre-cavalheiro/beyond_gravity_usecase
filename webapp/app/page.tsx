@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from "react"
 import { useRouter } from "next/navigation"
+import { Loader2 } from "lucide-react"
 import { useAuth } from "@/lib/auth/context"
 import { Button } from "@/components/ui/button"
 
@@ -154,14 +155,31 @@ function ParticleField() {
 }
 
 export default function LandingPage() {
-  const { userAuth, signIn } = useAuth()
+  const { userAuth, signIn, loading } = useAuth()
   const router = useRouter()
+  const isBootstrapping = loading && Boolean(userAuth)
 
   useEffect(() => {
-    if (userAuth) {
-      router.push("/home")
+    if (!loading && userAuth) {
+      router.replace("/home")
     }
-  }, [userAuth, router])
+  }, [loading, userAuth, router])
+
+  if (isBootstrapping) {
+    return (
+      <div className="relative flex min-h-screen flex-col overflow-hidden bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 text-slate-100">
+        <ParticleField />
+        <main className="relative z-10 flex flex-1 items-center justify-center px-6 py-20">
+          <div className="flex flex-col items-center gap-4 text-center">
+            <Loader2 className="h-10 w-10 animate-spin text-indigo-200" />
+            <p className="text-base text-slate-300 sm:text-lg">
+              Preparing your workspace…
+            </p>
+          </div>
+        </main>
+      </div>
+    )
+  }
 
   return (
     <div className="relative flex min-h-screen flex-col overflow-hidden bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 text-slate-100">

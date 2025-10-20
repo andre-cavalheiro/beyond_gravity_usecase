@@ -163,13 +163,16 @@ class SqlService(Generic[T], GenericService):
         return await self.repository.add(self.session, item)
 
     @with_uow
-    async def create_items(self, items: List[BaseSQLModel]) -> None:
+    async def create_items(self, items: List[BaseSQLModel]) -> int:
+        count = 0
         for item in items:
             try:
                 await self.repository.add(self.session, item)
+                count += 1
             except Exception as e:
                 print(f"Failed to add item: {item}, error: {e}")
                 continue
+        return count
 
     @with_uow
     async def get_item(self, id_: int) -> BaseSQLModel | None:

@@ -2,12 +2,13 @@
 
 import { useRouter } from "next/navigation"
 import { useContext, useEffect, useState } from "react"
+import { isAxiosError } from "axios"
 import {
   GoogleAuthProvider,
   signInWithPopup,
   signOut as firebaseSignOut,
   onAuthStateChanged,
-  type User as UserAuth
+  type User as UserAuth,
 } from "firebase/auth"
 import { getUser, getOrganization, createOrganization } from "@/lib/api/client"
 import type { User, Organization } from "@/lib/api/types"
@@ -34,15 +35,51 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUserAuth(firebaseUser)
 
       try {
-        let u = await getUser()
-        if (!u.id) {
-          await createOrganization(firebaseUser.displayName || "New Org")
-          u = await getUser()
+        let resolvedUser = await getUser()
+
+        const provisionOrganization = async (): Promise<Organization> => {
+          try {
+            const createdOrganization = await createOrganization(
+              firebaseUser.displayName?.trim() || "New Org",
+            )
+            resolvedUser = await getUser()
+            return createdOrganization
+          } catch (createError) {
+            if (
+              isAxiosError(createError) &&
+              createError.response?.status === 409
+            ) {
+              // Organization already prepared in backend, just refresh local state
+              resolvedUser = await getUser()
+              return await getOrganization()
+            }
+            throw createError
+          }
         }
 
-        const o = await getOrganization()
-        setUser(u)
-        setOrganization(o)
+        let resolvedOrganization: Organization
+
+        if (!resolvedUser.id) {
+          resolvedOrganization = await provisionOrganization()
+        } else {
+          try {
+            resolvedOrganization = await getOrganization()
+          } catch (organizationError) {
+            if (
+              isAxiosError(organizationError) &&
+              [401, 403, 404].includes(
+                organizationError.response?.status ?? 0,
+              )
+            ) {
+              resolvedOrganization = await provisionOrganization()
+            } else {
+              throw organizationError
+            }
+          }
+        }
+
+        setUser(resolvedUser)
+        setOrganization(resolvedOrganization)
       } catch (err) {
         console.error("❌ Bootstrap failed:", err)
       } finally {

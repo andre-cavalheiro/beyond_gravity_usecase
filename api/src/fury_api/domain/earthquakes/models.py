@@ -87,7 +87,7 @@ class IngestPayload(BaseSQLModel):
     min_magnitude: Optional[float] = None
     limit: Optional[int] = None
     search_ciim_geo_image_url: bool = False
-    enforce_ciim_geo_image_url: bool = True
+    enforce_ciim_geo_image_url: bool = False
 
 class IngestResponse(BaseSQLModel):
     count: int

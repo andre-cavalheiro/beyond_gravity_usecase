@@ -559,7 +559,7 @@ export default function EarthquakeDetailPage() {
                   <img
                     src={earthquake.ciimGeoImageUrl ?? undefined}
                     alt={`Community intensity map for ${earthquake.title}`}
-                    className="h-52 w-auto max-w-full rounded-lg border border-border/40 bg-background object-contain shadow-sm"
+                    className="h-64 w-auto max-w-full rounded-lg border border-border/40 bg-background object-contain shadow-sm"
                     onError={() => setImageLoadError(true)}
                   />
                 )}

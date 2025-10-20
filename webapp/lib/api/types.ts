@@ -48,3 +48,7 @@ export interface Earthquake {
   longitude: number
   depthKm: number
 }
+
+export interface IngestResponse {
+  count: number
+}

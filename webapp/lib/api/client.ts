@@ -1,12 +1,18 @@
 import axios, { type AxiosError } from "axios"
-import type { Organization, User, PaginatedResponse, Earthquake } from "./types"
+import type {
+  Organization,
+  User,
+  PaginatedResponse,
+  Earthquake,
+  IngestResponse,
+} from "./types"
 import { mockOrganization, mockUser, mockEarthquake } from "./mocks"
 import { env } from "@/app/env"
 import { auth } from "@/lib/auth/firebase"
 
 const api = axios.create({
   baseURL: env.NEXT_PUBLIC_API_URL,
-  timeout: 10000, // 10 seconds timeout
+  timeout: 45000, // 45 seconds timeout
 })
 
 // Add an interceptor to include the Firebase token in each request
@@ -186,6 +192,34 @@ export async function getEarthquakeHeightmap(
     return response.data
   } catch (error) {
     console.error(`Error getting earthquake ${id} heightmap:`, error)
+    throw error
+  }
+}
+
+type IngestEarthquakesPayload = {
+  start_date: string
+  end_date: string
+  limit?: number | null
+  min_magnitude?: number | null
+  search_ciim_geo_image_url?: boolean
+  enforce_ciim_geo_image_url?: boolean
+}
+
+export async function ingestEarthquakes(
+  payload: IngestEarthquakesPayload
+): Promise<IngestResponse> {
+  if (env.NEXT_PUBLIC_USE_MOCKS) {
+    return { count: 1 }
+  }
+
+  try {
+    const response = await api.post<IngestResponse>(
+      "/earthquakes/ingest",
+      payload
+    )
+    return response.data
+  } catch (error) {
+    console.error("Error ingesting earthquakes:", error)
     throw error
   }
 }
