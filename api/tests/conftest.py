@@ -57,17 +57,7 @@ def mocked_user_client(app: FastAPI) -> TestClient:
         source_id="1", name="test", email="test@test.com", organization_id=None, user_id=None
     )
     app.dependency_overrides[validate_api_key] = lambda: None
-
-    class VaultClient:
-        def read(self, secret: str):
-            return None
-
-        def create(self, secret: str, data: dict):
-            return None
-
-        def decrypt(self, secret: str):
-            return None
-
+    
     add_pagination(app)
 
     return TestClient(app)
@@ -84,12 +74,3 @@ async def bootstrap_org(db_init: None, mocked_user_client: TestClient) -> None:
     # Assuming the function is imported and ready to be used
     # Retrieve the UnitOfWork dependency
     assert response.status_code == 201, response.json()
-
-
-@pytest.fixture(scope="function")
-def use_system_user(mocked_user_client: TestClient) -> None:
-    from fury_api.domain.dependencies import is_system_user
-
-    mocked_user_client.app.dependency_overrides[is_system_user] = lambda: True
-    yield
-    del mocked_user_client.app.dependency_overrides[is_system_user]

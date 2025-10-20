@@ -67,7 +67,7 @@ export async function getUser(): Promise<User> {
 
 export async function getOrganization(): Promise<Organization> {
   if (env.NEXT_PUBLIC_USE_MOCKS) {
-    return mockOrganizationFree
+    return mockOrganization
   }
 
   try {
@@ -81,7 +81,7 @@ export async function getOrganization(): Promise<Organization> {
 
 export async function createOrganization(name: string): Promise<Organization> {
   if (env.NEXT_PUBLIC_USE_MOCKS) {
-    return mockOrganizationFree
+    return mockOrganization
   }
 
   try {

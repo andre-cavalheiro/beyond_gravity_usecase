@@ -1,0 +1,18 @@
+replicaCount: 1
+
+image:
+  repository: andrecavalheiro/beyond-gravity-usecase-webapp
+  tag: latest
+  pullPolicy: Always
+
+service:
+  type: ClusterIP
+  port: 3001
+
+resources:
+  limits:
+    cpu: 500m
+    memory: 512Mi
+  requests:
+    cpu: 200m
+    memory: 256Mi 

@@ -3,7 +3,7 @@ MAKEFLAGS += --no-print-directory --silent
 ################################################################################
 # Makefile Variables
 ################################################################################
-DOCKER_IMAGE = andrecavalheiro/beyong-gravity-usecase-webapp
+DOCKER_IMAGE = andrecavalheiro/beyond-gravity-usecase-webapp
 DOCKERFILE_PATH = ./deploy/Dockerfile
 
 KUBERNETES_CLUSTER = kratos
@@ -15,13 +15,13 @@ KUBERNETES_NAMESPACE = beyond-gravity-usecase
 # (...)
 .PHONY: start
 start:
-	@pnpm run dev --port 3001
+	@yarn run dev --port 3001
 
 ################################################################################
 # Setup & Install
 ################################################################################
 # (...)
-# Install a package: "pnpm add -D @types/canvas-confetti"
+# Install a package: "yarn add -D @types/canvas-confetti"
 
 ################################################################################
 # Deploy

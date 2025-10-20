@@ -5,7 +5,7 @@ replicaCount: 1
 # Image configuration for the application
 # Includes repository details, tag, and pull policies
 image:
-  repository: andrecavalheiro/fury-api
+  repository: andrecavalheiro/beyond-gravity-usecase-api
   tag: latest
   pullPolicy: Always  # Options: Always, IfNotPresent, Never
 

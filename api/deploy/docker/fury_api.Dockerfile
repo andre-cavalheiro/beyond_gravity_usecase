@@ -62,6 +62,8 @@ FROM python-base AS production
 # Install necessary networking tools in the production image too (I should not need make, curl, ping or posgresql client in the production image)
 RUN apt-get update \
   && apt-get install --no-install-recommends -y \
+  libgl1 \
+  libglib2.0-0 \
   make \
   curl \
   iputils-ping \
