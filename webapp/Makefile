@@ -88,8 +88,6 @@ tag:
 	git tag -a $$version -m "$$msg"; \
 	git push origin --tags
 
-
-
 # kubectl delete secret beyond-gravity-usecase-webapp-env 
 # kubectl create secret generic beyond-gravity-usecase-webapp-env --from-env-file=.env.production
 # kubectl exec -it beyond-gravity-usecase-webapp-5fd65f6cd9-g8lw2 -- printenv | grep NEXT_PUBLIC

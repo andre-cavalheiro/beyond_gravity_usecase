@@ -19,7 +19,7 @@ ALEMBIC_ROOT_DIR = src/fury_api/lib/db
 ALEMBIC_CONFIG = $(ALEMBIC_ROOT_DIR)/alembic.ini
 ALEMBIC_MIGRATIONS_DIR = $(ALEMBIC_ROOT_DIR)/migrations/versions
 
-PYTHON_EXECUTABLE := PYTHONPATH=$(PWD)/src $(VENV_PATH)/bin/python -m
+PYTHON_EXECUTABLE := PYTHONPATH=$(PWD)/src $(VENV_PATH)/bin/python
 
 DOCKER_IMAGE = andrecavalheiro/beyond-gravity-usecase-api
 DOCKERFILE_PATH = ./deploy/docker/fury_api.Dockerfile
@@ -246,6 +246,10 @@ test-local:
 ################################################################################
 # Devex
 ################################################################################
+.PHONY: start
+start:
+	$(PYTHON_EXECUTABLE) -m fury_api
+
 .PHONY: get-token
 get-token:
 	$(PYTHON_EXECUTABLE) fury_api.scripts.generate_firebase_token

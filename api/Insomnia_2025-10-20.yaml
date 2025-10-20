@@ -1,0 +1,654 @@
+type: collection.insomnia.rest/5.0
+name: Usecase
+meta:
+  id: wrk_3cd54e9ca91a4545b41336ac07ec3b50
+  created: 1760749704723
+  modified: 1760749704723
+  description: ""
+collection:
+  - name: All Requests
+    meta:
+      id: fld_1d128d3c12704244a3c1fb71cd663ae1
+      created: 1743421378945
+      modified: 1743421378945
+      sortKey: -1725041385658
+      description: ""
+    children:
+      - name: Users
+        meta:
+          id: fld_1c059ba4c8204ac1b7e3b62ce859b1e1
+          created: 1743421378946
+          modified: 1743421378946
+          sortKey: -1725041390846
+          description: ""
+        children:
+          - url: "{{ _.base_path }}/users"
+            name: List Users
+            meta:
+              id: req_14063374311a4bf98e4051b3bd0dd948
+              created: 1743421378947
+              modified: 1743421378947
+              isPrivate: false
+              description: ""
+              sortKey: -1725041469852
+            method: GET
+            headers:
+              - name: User-Agent
+                value: insomnia/9.3.3
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: "{{ _.base_path }}/users/{{ _.user_id }}"
+            name: Delete User ID
+            meta:
+              id: req_71510642e9214199bf33d362861d4e3a
+              created: 1743421378947
+              modified: 1743421378947
+              isPrivate: false
+              description: ""
+              sortKey: -1725041469752
+            method: DELETE
+            headers:
+              - name: User-Agent
+                value: insomnia/9.3.3
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: "{{ _.base_path }}/users/self"
+            name: Get Self User
+            meta:
+              id: req_a2c4bc0b1adf4151b7b9cc61322f2364
+              created: 1743421378947
+              modified: 1743421378947
+              isPrivate: false
+              description: ""
+              sortKey: -1725041469802
+            method: GET
+            headers:
+              - name: User-Agent
+                value: insomnia/9.3.3
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: "{{ _.base_path }}/users/self"
+            name: Update Self User
+            meta:
+              id: req_228c3f2f320943da8196b3f35965017d
+              created: 1744545031781
+              modified: 1754160358061
+              isPrivate: false
+              description: ""
+              sortKey: -1725041469777
+            method: PUT
+            body:
+              mimeType: application/json
+              text: |
+                {
+                	"name": "John Doe",
+                	"phone_number": "+351 932157434",
+                	"birthDate": "1997-09-04", 
+                  "notification_settings": {
+                    "realtimeEnabled": false,
+                    "channels": ["whatsapp"],
+                    "config": {}
+                  }
+                }
+            headers:
+              - name: Content-Type
+                value: application/json
+              - name: User-Agent
+                value: insomnia/9.3.3
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+      - name: Organizations
+        meta:
+          id: fld_ab3020d1af1243e59ff654d3a8d68336
+          created: 1743421378948
+          modified: 1743421378948
+          sortKey: -1725041390796
+          description: ""
+        children:
+          - url: "{{ _.base_path }}/organizations/self"
+            name: Get Self Organization
+            meta:
+              id: req_8140427b58b049e4b750920847196074
+              created: 1743421378951
+              modified: 1743421378951
+              isPrivate: false
+              description: ""
+              sortKey: -1725040572254
+            method: GET
+            headers:
+              - name: User-Agent
+                value: insomnia/9.3.3
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: "{{ _.base_path }}/organizations/self"
+            name: Delete Self Organization
+            meta:
+              id: req_24c3d5acb6f24cc98b9222fe05c5bf1e
+              created: 1743421378952
+              modified: 1743421378952
+              isPrivate: false
+              description: ""
+              sortKey: -1725040572154
+            method: DELETE
+            headers:
+              - name: User-Agent
+                value: insomnia/9.3.3
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: "{{ _.base_path }}/organizations"
+            name: Create Organization
+            meta:
+              id: req_cba67ac4746c4210a55cbc5b1f2deffe
+              created: 1743421378952
+              modified: 1744243331061
+              isPrivate: false
+              description: ""
+              sortKey: -1725040572354
+            method: POST
+            body:
+              mimeType: application/json
+              text: '{"name":"Test User Org"}'
+            headers:
+              - name: Content-Type
+                value: application/json
+              - name: User-Agent
+                value: insomnia/9.3.3
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: "{{ _.base_path }}/webhooks/stripe"
+            name: Upgrade Subscription
+            meta:
+              id: req_003d79b304ad4a98b9c887f400a051c2
+              created: 1743630133056
+              modified: 1757273130757
+              isPrivate: false
+              description: |-
+                {
+                	"origin": "LON",
+                	"destination": "LIS",
+                	"timeline": {
+                		"departure_date_range": "2025-05-25,2025-05-28",
+                		
+                		// Only one should be selected:
+                		// "return_date_range": "2025-05-25,2025-05-28"
+                		// "duration_days_range": "7,10"
+                	},
+                	"preferences": {
+                		"nonStop": true
+                	}
+                }
+              sortKey: -1725040572054
+            method: POST
+            body:
+              mimeType: application/json
+              text: "{
+
+                \    \"id\": \"mock_stripe_event_id\",
+
+                \    \"object\": \"event\",
+
+                \t\t\"livemode\": false,
+
+                \    \"type\": \"customer.subscription.updated\",
+
+                \    \"data\": {
+
+                \      \"object\": {
+
+                \        \"id\": \"mock_stripe_object\",
+
+                \        \"object\": \"subscription\",
+
+                \        \"customer\": \"{{ _.stripe_customer_id }}\",
+
+                \        \"status\": \"active\",
+
+                \        \"items\": {
+
+                \t\t\t\t\t\"object\": \"list\",
+
+                \          \"data\": [
+
+                \            {
+
+                \t\t\t\t\t\t\t\"id\": \"mock_stripe_item\",
+
+                \            \t\"object\": \"subscription_item\",
+
+                \              \"price\": {
+
+                \                \"id\": \"{{ _.stripe_subscription_price_id
+                }}\", \ 
+
+                \                \"object\": \"price\",
+
+                \t\t\t\t\t\t\t\t\"currency\": \"eur\",
+
+                \t\t\t\t\t\t\t\t\"unit_amount\": {{ _.stripe_price_amount_cents
+                }},
+
+                \                \"recurring\": {
+
+                \                  \"interval\": \"month\"
+
+                \                },
+
+                \                \"product\": \"{{ _.stripe_product_id }}\"
+
+                \              }
+
+                \            }
+
+                \          ]
+
+                \        }
+
+                \      }
+
+                \    }
+
+                \  }
+
+                \  "
+            headers:
+              - name: Content-Type
+                value: application/json
+              - name: User-Agent
+                value: insomnia/9.3.3
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+      - name: Health
+        meta:
+          id: fld_2bf1db88cd9c470584e0a021f32c15e3
+          created: 1743421378953
+          modified: 1743421378953
+          sortKey: -1725041390546
+          description: ""
+        children:
+          - url: "{{ _.base_path }}/health"
+            name: Health Check
+            meta:
+              id: req_0b026cc114924b50a9347454f92943a9
+              created: 1743421378953
+              modified: 1743421378953
+              isPrivate: false
+              description: ""
+              sortKey: -1725040572454
+            method: GET
+            body:
+              mimeType: application/json
+            headers:
+              - name: Content-Type
+                value: application/json
+              - name: User-Agent
+                value: insomnia/9.3.3
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: "{{ _.base_path }}/health/velini"
+            name: Health Check Velini
+            meta:
+              id: req_c59096c3d96a47f2bb1362ae8f19dfb1
+              created: 1743421378953
+              modified: 1743421378953
+              isPrivate: false
+              description: ""
+              sortKey: -1725040572404
+            method: GET
+            body:
+              mimeType: application/json
+            headers:
+              - name: Content-Type
+                value: application/json
+              - name: User-Agent
+                value: insomnia/9.3.3
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+      - name: Earthquakes
+        meta:
+          id: fld_a8f28effe2804a879cf72f4997f56926
+          created: 1760757111567
+          modified: 1760900982468
+          sortKey: -1725041390946
+          description: ""
+        children:
+          - url: "{{ _.base_path }}/earthquakes/{{ _.earthquake_id }}"
+            name: Get ID
+            meta:
+              id: req_3e26eab9a60f41ac842c3243903f179f
+              created: 1760757111569
+              modified: 1760886300028
+              isPrivate: false
+              description: ""
+              sortKey: -1725041469802
+            method: GET
+            headers:
+              - name: User-Agent
+                value: insomnia/9.3.3
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: "{{ _.base_path }}/earthquakes"
+            name: List
+            meta:
+              id: req_49c477a665ad47e287409c7b046937c3
+              created: 1760757175930
+              modified: 1760965266918
+              isPrivate: false
+              description: ""
+              sortKey: -1725041469952
+            method: GET
+            parameters:
+              - id: pair_203f49689b704a9482f21bdabeb5d9c0
+                name: filters
+                value: external_id:eq:us6000rhpf
+                description: ""
+                disabled: true
+              - name: filters
+                value: title:ilike:%awaii%
+                id: pair_d870ba16d16147f29600f03ee95ca9ea
+                disabled: true
+              - name: filters
+                value: place%3Acontains%3APhilippines
+                id: pair_8cddccb992344b4098023dde69cd94e5
+                disabled: true
+              - name: filters
+                value: magnitude%3Agte%3A2.5
+                id: pair_812a512f4889456d80b38db4db583a31
+                disabled: true
+              - name: filters
+                value: magnitude_type%3Ain%3Amb%2Cmd
+                id: pair_43b7717d28a24c2bb8dc63e9119998c2
+                disabled: true
+              - name: filters
+                value: significance%3Agt%3A50
+                id: pair_5ac98318115946158b661d2f73475839
+                disabled: true
+              - name: filters
+                value: tsunami%3Aeq%3Atrue
+                id: pair_b18ebbb04eb74858872008a94c62b8f0
+                disabled: true
+              - name: filters
+                value: felt_reports%3Agte%3A1
+                id: pair_89f736d7bdd444e29125f7ecfa1a64f8
+                disabled: true
+              - name: filters
+                value: cdi%3Alt%3A3
+                id: pair_53578905a4a4446a9f014a5640637d38
+                disabled: true
+              - name: filters
+                value: minimum_distance%3Alte%3A1.0
+                id: pair_5e19a3ef0c934a32bca267d31860c0b5
+                disabled: true
+              - name: filters
+                value: gap%3Alt%3A180
+                id: pair_42fc79a9d7484f81a735aa8df60d05d5
+                disabled: true
+              - name: filters
+                value: occurred_at%3Agte%3A2025-10-15T00%3A00%3A00%2B00%3A00
+                id: pair_2018e99f74a140f9b081931d0ebe59f7
+                disabled: true
+              - name: filters
+                value: ecternal_updated_at%3Alte%3A2025-10-17T23%3A59%3A59%2B00%3A00
+                id: pair_6bd3a4e0f37442bab21e007312415b3c
+                disabled: true
+              - name: filters
+                value: latitude%3Agt%3A-90
+                id: pair_023d97a722be4c95a9436edd78577a8d
+                disabled: true
+              - name: filters
+                value: longitude%3Alt%3A180
+                id: pair_1e3112838ea444e588e33f5e5cea33a7
+                disabled: true
+              - name: filters
+                value: depth_km%3Alt%3A70
+                id: pair_fa0412b8d4ea4122a2a537b5fa25d862
+                disabled: true
+              - name: filters
+                value: created_at%3Aisnotnull
+                id: pair_2c365376cfe34938903fb6c385ae2d55
+                disabled: true
+              - name: filters
+                value: last_updated_at%3Aisnotnull
+                id: pair_9b5d88eef000461dba973cf32d66aadf
+                disabled: true
+              - name: sorts
+                value: magnitude%3Adesc
+                id: pair_f0b25264626b4a768c8289530fe581b7
+                disabled: true
+              - name: sorts
+                value: occurred_at%3Adesc
+                id: pair_2a7ebd487948452096bd82966674f773
+                disabled: true
+              - id: pair_55688d9c28f94ac08acf89a76fa64494
+                name: sorts
+                value: place:asc
+                description: ""
+                disabled: true
+              - name: sorts
+                value: ciim_geo_image_url:desc
+                id: pair_13efd4db224d430c9ceb92d02a2ec79a
+                disabled: true
+              - id: pair_66ba70c2044f4106ab0587af7553036d
+                name: includeTotal
+                value: "true"
+                description: ""
+                disabled: false
+              - id: pair_e9a9d51f13b3468c87f06137877107ee
+                name: size
+                value: "5"
+                description: ""
+                disabled: false
+            headers:
+              - id: pair_fc289ca6e3454e90ae65d857f8b00b8a
+                name: ""
+                value: ""
+                description: ""
+                disabled: false
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: "{{ _.base_path }}/earthquakes/{{ _.earthquake_id }}/ciim_geo_heightmap"
+            name: Get Heightmap
+            meta:
+              id: req_23564e19db93453691600e0fc42f5aab
+              created: 1760915868721
+              modified: 1760915870725
+              isPrivate: false
+              description: ""
+              sortKey: -1725041469789.5
+            method: GET
+            headers:
+              - name: User-Agent
+                value: insomnia/9.3.3
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+          - url: "{{ _.base_path }}/earthquakes/ingest"
+            name: Ingest
+            meta:
+              id: req_a44d7db0ddbb425b9e47511147952f2b
+              created: 1760934389814
+              modified: 1760962629350
+              isPrivate: false
+              description: ""
+              sortKey: -1725041469689.5
+            method: POST
+            body:
+              mimeType: application/json
+              text: |-
+                {
+                    "start_date": "2025-09-27",
+                    "end_date": "2025-09-28",
+                    "search_ciim_geo_image_url": true,
+                    "enforce_ciim_geo_image_url": true
+                  }
+            parameters:
+              - id: pair_6f849ed253bd472ea04c7248e914e90b
+                name: ""
+                value: ""
+                description: ""
+                disabled: false
+            headers:
+              - name: Content-Type
+                value: application/json
+              - id: pair_fc289ca6e3454e90ae65d857f8b00b8a
+                name: ""
+                value: ""
+                description: ""
+                disabled: false
+            settings:
+              renderRequestBody: true
+              encodeUrl: true
+              followRedirects: global
+              cookies:
+                send: true
+                store: true
+              rebuildPath: true
+    authentication:
+      type: bearer
+      token: "{{ _.token }}"
+  - name: USGS Earthquake API
+    meta:
+      id: fld_0365de71cf5649c899043abb997f0d54
+      created: 1760753985073
+      modified: 1760753985073
+      sortKey: -1760753985073
+      description: ""
+    children:
+      - url: https://earthquake.usgs.gov/fdsnws/event/1/query
+        name: GET
+        meta:
+          id: req_f600acf09d5045849b52f6fe0d4bd7d3
+          created: 1760753995855
+          modified: 1760754049490
+          isPrivate: false
+          description: ""
+          sortKey: -1760753995855
+        method: GET
+        parameters:
+          - name: format
+            value: geojson
+            disabled: false
+            id: pair_79aae91a4d974be0a31d5905d6cc01c0
+          - name: starttime
+            value: 2025-10-15
+            disabled: false
+            id: pair_07398059d59046da8b260480f41d6f47
+          - name: endtime
+            value: 2025-10-17
+            disabled: false
+            id: pair_84789e9aa3cd4a9b9fc2b278befd98e2
+          - name: minmagnitude
+            value: "5"
+            disabled: true
+            id: pair_f3f74868dfe147de94b89389a4b0d87e
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+cookieJar:
+  name: Default Jar
+  meta:
+    id: jar_25a17ef9da0d485d97c33d28cd3aad5c
+    created: 1743421378941
+    modified: 1743421378941
+environments:
+  name: Base Environment
+  meta:
+    id: env_3532fd5c192b48ae9946e06f5680eb38
+    created: 1743421378937
+    modified: 1760963988197
+    isPrivate: false
+  data:
+    base_path: http://localhost:3000/api/v1
+    token: eyJhbGciOiJSUzI1NiIsImtpZCI6IjlkMjEzMGZlZjAyNTg3ZmQ4ODYxODg2OTgyMjczNGVmNzZhMTExNjUiLCJ0eXAiOiJKV1QifQ.eyJuYW1lIjoiQW5kcmUgQ2F2YWxoZWlybyIsInBpY3R1cmUiOiJodHRwczovL2xoMy5nb29nbGV1c2VyY29udGVudC5jb20vYS9BQ2c4b2NKWlNZdVFRZC1IS1NQcUxJd0MwcHhsbVdUM3pnRFRsaU5FUm8tZGFmMHcycTZwbWZ6UnFRPXM5Ni1jIiwiaXNzIjoiaHR0cHM6Ly9zZWN1cmV0b2tlbi5nb29nbGUuY29tL2JleW9uZC1ncmF2aXR5LXVzZWNhc2UiLCJhdWQiOiJiZXlvbmQtZ3Jhdml0eS11c2VjYXNlIiwiYXV0aF90aW1lIjoxNzYwOTYzOTc0LCJ1c2VyX2lkIjoiTUI0dWpTblFhT1poeWVpdHAxVkRaZkFXNlBsMiIsInN1YiI6Ik1CNHVqU25RYU9aaHllaXRwMVZEWmZBVzZQbDIiLCJpYXQiOjE3NjA5NjM5NzQsImV4cCI6MTc2MDk2NzU3NCwiZW1haWwiOiJhbmRyZS5jYXZhbGhlaXJvMTNAZ21haWwuY29tIiwiZW1haWxfdmVyaWZpZWQiOnRydWUsImZpcmViYXNlIjp7ImlkZW50aXRpZXMiOnsiZ29vZ2xlLmNvbSI6WyIxMDgyMDgyNTk3NjYwOTAwNjk4OTMiXSwiZW1haWwiOlsiYW5kcmUuY2F2YWxoZWlybzEzQGdtYWlsLmNvbSJdfSwic2lnbl9pbl9wcm92aWRlciI6ImN1c3RvbSJ9fQ.DywQGXQqpuXkMw-Tk_p5HS0FpyOHm31wq5DrwInm9lYldgt3oaEG7sxPcHz2jU46ecPk7_98mgYvlD-MKobSMA1WLlryJMgn8t3vSGrcMwg6_qjSnD_gumqI_A9GwpdZ7vdoS-EyQIGdc8yaVCIrVGdoQeaWbDys2_gj0VmoEqpuBIPuFoVcArlRxx38lmn1mtKGzFEV5q5RpRwjVdia9j_OE_oq_SQ3iEckbD_2az7WXHgNP5AxlCzYxpsZQx-d7OwpbyKeZDH5mdh2_y0ofs255Rmro4_UEEcgwvpE7F1cuzcBUIyIcoFAyR80XGm5hmvPKuHX8Wh6llTZeiALvA
+    earthquake_id: 380
+  subEnvironments:
+    - name: Prod
+      meta:
+        id: env_a47000dcf04747f789c3511f94ecdf85
+        created: 1743421378940
+        modified: 1760933196904
+        isPrivate: true
+        sortKey: 1737851930041
+      data:
+        base_path: https://api-beyond-gravity.cavalheiro.io/api/v1
