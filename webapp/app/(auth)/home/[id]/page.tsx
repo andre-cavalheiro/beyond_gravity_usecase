@@ -2,9 +2,11 @@
 
 import Link from "next/link"
 import { useParams } from "next/navigation"
-import { useEffect, useMemo, useState } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import type { ReactNode } from "react"
-import { ExternalLink } from "lucide-react"
+import { ExternalLink, Image as ImageIcon, Loader2, Rotate3d } from "lucide-react"
+import * as THREE from "three"
+import { OrbitControls } from "three/examples/jsm/controls/OrbitControls"
 
 import {
   Card,
@@ -20,7 +22,8 @@ import {
   TableCell,
   TableRow,
 } from "@/components/ui/table"
-import { getEarthquake } from "@/lib/api/client"
+import { Button } from "@/components/ui/button"
+import { getEarthquake, getEarthquakeHeightmap } from "@/lib/api/client"
 import type { Earthquake } from "@/lib/api/types"
 import {
   formatEarthquakeDate,
@@ -38,6 +41,171 @@ type DetailGroup = {
   id: string
   title: string
   items: DetailItem[]
+}
+
+type ViewerMode = "image" | "loading" | "heightmap"
+
+function blobToDataUrl(blob: Blob): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onloadend = () => {
+      if (typeof reader.result === "string") {
+        resolve(reader.result)
+      } else {
+        reject(new Error("Failed to convert blob to data URL"))
+      }
+    }
+    reader.onerror = () => reject(new Error("Failed to read blob"))
+    reader.readAsDataURL(blob)
+  })
+}
+
+type HeightmapViewerProps = {
+  src: string
+  onLoadError?: (message: string) => void
+}
+
+function HeightmapViewer({ src, onLoadError }: HeightmapViewerProps) {
+  const containerRef = useRef<HTMLDivElement | null>(null)
+
+  useEffect(() => {
+    const container = containerRef.current
+    if (!container) {
+      return
+    }
+
+    const scene = new THREE.Scene()
+    scene.background = new THREE.Color("#0f172a")
+
+    const renderer = new THREE.WebGLRenderer({
+      antialias: true,
+      alpha: true,
+    })
+    renderer.setPixelRatio(window.devicePixelRatio)
+    renderer.outputColorSpace = THREE.SRGBColorSpace
+    renderer.setSize(container.clientWidth, container.clientHeight)
+    container.appendChild(renderer.domElement)
+
+    const camera = new THREE.PerspectiveCamera(
+      55,
+      container.clientWidth / container.clientHeight,
+      0.1,
+      100
+    )
+    camera.position.set(6, 5, 6)
+
+    const controls = new OrbitControls(camera, renderer.domElement)
+    controls.enableDamping = true
+    controls.dampingFactor = 0.05
+    controls.target.set(0, 0.5, 0)
+    controls.update()
+
+    const ambient = new THREE.AmbientLight(0xffffff, 0.55)
+    const directional = new THREE.DirectionalLight(0xffffff, 1.15)
+    directional.position.set(6, 10, 6)
+    scene.add(ambient, directional)
+
+    const grid = new THREE.GridHelper(12, 12, 0x444444, 0x222222)
+    scene.add(grid)
+
+    const textureLoader = new THREE.TextureLoader()
+    let mesh: THREE.Mesh<
+      THREE.PlaneGeometry,
+      THREE.MeshStandardMaterial
+    > | null = null
+    let frameId = 0
+
+    textureLoader.load(
+      src,
+      (texture) => {
+        texture.wrapS = texture.wrapT = THREE.ClampToEdgeWrapping
+        texture.minFilter = THREE.LinearFilter
+        texture.magFilter = THREE.LinearFilter
+        texture.colorSpace = THREE.SRGBColorSpace
+
+        const imageSource = texture.image as
+          | { width?: number; height?: number }
+          | undefined
+        const sourceWidth = imageSource?.width ?? 128
+        const sourceHeight = imageSource?.height ?? 128
+        const segments = Math.min(
+          256,
+          Math.max(64, Math.max(sourceWidth, sourceHeight))
+        )
+
+        const geometry = new THREE.PlaneGeometry(10, 10, segments, segments)
+        geometry.rotateX(-Math.PI / 2)
+
+        const material = new THREE.MeshStandardMaterial({
+          color: 0xf0f0f0,
+          map: texture,
+          displacementMap: texture,
+          displacementScale: 2.4,
+          metalness: 0.15,
+          roughness: 0.85,
+        })
+
+        mesh = new THREE.Mesh(geometry, material)
+        mesh.position.y = 0.5
+        scene.add(mesh)
+
+        const animate = () => {
+          controls.update()
+          renderer.render(scene, camera)
+          frameId = requestAnimationFrame(animate)
+        }
+        animate()
+      },
+      undefined,
+      (err) => {
+        console.error("Failed to load heightmap texture", err)
+        onLoadError?.("We couldn't render the 3D visualization. Try again or check the source image.")
+      }
+    )
+
+    const handleResize = () => {
+      if (!container) return
+      const { clientWidth, clientHeight } = container
+      renderer.setSize(clientWidth, clientHeight)
+      camera.aspect = clientWidth / clientHeight
+      camera.updateProjectionMatrix()
+    }
+
+    handleResize()
+    window.addEventListener("resize", handleResize)
+
+    return () => {
+      cancelAnimationFrame(frameId)
+      window.removeEventListener("resize", handleResize)
+      controls.dispose()
+      scene.remove(grid)
+      grid.geometry.dispose()
+      if (Array.isArray(grid.material)) {
+        for (const material of grid.material) {
+          material.dispose()
+        }
+      } else {
+        grid.material.dispose()
+      }
+      if (mesh) {
+        mesh.geometry.dispose()
+        mesh.material.dispose()
+        scene.remove(mesh)
+      }
+      renderer.dispose()
+      if (renderer.domElement.parentNode === container) {
+        container.removeChild(renderer.domElement)
+      }
+      scene.clear()
+    }
+  }, [onLoadError, src])
+
+  return (
+    <div
+      ref={containerRef}
+      className="h-[22rem] w-full overflow-hidden rounded-xl border border-border/40 bg-slate-950/60"
+    />
+  )
 }
 
 function formatNumber(
@@ -106,6 +274,23 @@ export default function EarthquakeDetailPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [imageLoadError, setImageLoadError] = useState(false)
+  const [viewerMode, setViewerMode] = useState<ViewerMode>("image")
+  const [heightmapUrl, setHeightmapUrl] = useState<string | null>(null)
+  const [heightmapError, setHeightmapError] = useState<string | null>(null)
+  const isMountedRef = useRef(true)
+
+  useEffect(() => {
+    isMountedRef.current = true
+    return () => {
+      isMountedRef.current = false
+    }
+  }, [])
+
+  useEffect(() => {
+    setViewerMode("image")
+    setHeightmapUrl(null)
+    setHeightmapError(null)
+  }, [earthquakeId])
 
   useEffect(() => {
     if (!earthquakeId) {
@@ -121,6 +306,7 @@ export default function EarthquakeDetailPage() {
         if (!isActive) return
         setEarthquake(data)
         setImageLoadError(false)
+        setViewerMode("image")
       } catch {
         if (!isActive) return
         setError("We couldn't load this earthquake right now. Please try again.")
@@ -285,6 +471,50 @@ export default function EarthquakeDetailPage() {
     ]
   }, [earthquake])
 
+  const handleTransformClick = async () => {
+    if (!earthquake) {
+      return
+    }
+
+    if (viewerMode === "loading") {
+      return
+    }
+
+    setHeightmapError(null)
+    setHeightmapUrl(null)
+    setViewerMode("loading")
+
+    try {
+      const blob = await getEarthquakeHeightmap(earthquake.id)
+      const dataUrl = await blobToDataUrl(blob)
+      if (!isMountedRef.current) {
+        return
+      }
+      setHeightmapUrl(dataUrl)
+      setViewerMode("heightmap")
+    } catch (err) {
+      console.error(err)
+      setHeightmapError(
+        "We couldn't generate the 3D visualization. Please try again."
+      )
+      setViewerMode("image")
+    }
+  }
+
+  const handleBackToImage = () => {
+    setViewerMode("image")
+  }
+
+  const hasImageUrl = Boolean(earthquake?.ciimGeoImageUrl)
+  const showOriginalImage =
+    viewerMode === "image" && hasImageUrl && !imageLoadError
+
+  const handleViewerLoadError = useCallback((message: string) => {
+    setHeightmapError(message)
+    setHeightmapUrl(null)
+    setViewerMode("image")
+  }, [])
+
   return (
     <Card>
       <CardHeader>
@@ -317,26 +547,82 @@ export default function EarthquakeDetailPage() {
 
         {!isLoading && !error && earthquake && (
           <>
-            {earthquake.ciimGeoImageUrl && !imageLoadError && (
-              <div className="mb-10 flex justify-center px-4 py-6">
-                <img
-                  src={earthquake.ciimGeoImageUrl}
-                  alt={`Community intensity map for ${earthquake.title}`}
-                  className="h-40 w-auto object-contain"
-                  onError={() => setImageLoadError(true)}
-                />
-              </div>
-            )}
-
-            {earthquake.ciimGeoImageUrl && imageLoadError && (
-              <div className="mb-8 rounded-md border border-border/40 bg-muted/20 px-4 py-3 text-sm text-muted-foreground">
-                We couldn't load the intensity map image.
-              </div>
-            )}
-
-            {!earthquake.ciimGeoImageUrl && (
+            {!hasImageUrl && (
               <div className="mb-8 rounded-md border border-border/40 bg-muted/20 px-4 py-3 text-sm text-muted-foreground">
                 Earthquake CIIM geo image not available.
+              </div>
+            )}
+
+            {hasImageUrl && (
+              <div className="mb-10 flex flex-col items-center gap-5 px-4 py-6">
+                {showOriginalImage && (
+                  <img
+                    src={earthquake.ciimGeoImageUrl ?? undefined}
+                    alt={`Community intensity map for ${earthquake.title}`}
+                    className="h-52 w-auto max-w-full rounded-lg border border-border/40 bg-background object-contain shadow-sm"
+                    onError={() => setImageLoadError(true)}
+                  />
+                )}
+
+                {viewerMode === "image" && imageLoadError && (
+                  <div className="w-full max-w-3xl rounded-md border border-border/40 bg-muted/20 px-4 py-3 text-sm text-muted-foreground">
+                    We couldn't load the intensity map image, but you can still attempt the 3D transformation.
+                  </div>
+                )}
+
+                {viewerMode === "loading" && (
+                  <div className="flex h-72 w-full max-w-3xl flex-col items-center justify-center gap-3 rounded-xl border border-border/40 bg-muted/20">
+                    <Loader2 className="size-9 animate-spin text-primary" />
+                    <p className="text-sm text-muted-foreground">
+                      Generating 3D heightmap…
+                    </p>
+                  </div>
+                )}
+
+                {viewerMode === "heightmap" && heightmapUrl && (
+                  <div className="w-full max-w-4xl">
+                    <HeightmapViewer
+                      src={heightmapUrl}
+                      onLoadError={handleViewerLoadError}
+                    />
+                  </div>
+                )}
+
+                {heightmapError && (
+                  <div className="w-full max-w-3xl rounded-md border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-destructive">
+                    {heightmapError}
+                  </div>
+                )}
+
+                <div className="flex flex-wrap items-center justify-center gap-3">
+                  <Button
+                    onClick={handleTransformClick}
+                    disabled={viewerMode === "loading"}
+                    className="inline-flex items-center gap-2"
+                  >
+                    {viewerMode === "loading" ? (
+                      <>
+                        <Loader2 className="size-4 animate-spin" />
+                        Transforming…
+                      </>
+                    ) : (
+                      <>
+                        <Rotate3d className="size-4" />
+                        Transform to 3D
+                      </>
+                    )}
+                  </Button>
+                  {viewerMode === "heightmap" && (
+                    <Button
+                      variant="outline"
+                      onClick={handleBackToImage}
+                      className="inline-flex items-center gap-2"
+                    >
+                      <ImageIcon className="size-4" />
+                      View original image
+                    </Button>
+                  )}
+                </div>
               </div>
             )}
 

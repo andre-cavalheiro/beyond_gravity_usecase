@@ -154,9 +154,12 @@ cython_debug/
 # Temp files
 tmp/
 temp/
+**/cache/
 
 # Project specific "lib" folders
 !src/**/lib/
+
+
 
 # Docker
 .env.compose

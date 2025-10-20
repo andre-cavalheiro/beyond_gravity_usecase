@@ -12,3 +12,4 @@ USERS_ID = f"{USERS}/{{id_}}"
 
 EARTHQUAKES = "/earthquakes"
 EARTHQUAKES_ID = f"{EARTHQUAKES}/{{id_}}"
+EARTHQUAKES_ID_IMAGE = f"{EARTHQUAKES}/{{id_}}/ciim_geo_heightmap"

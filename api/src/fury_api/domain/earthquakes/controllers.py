@@ -1,7 +1,8 @@
+import asyncio
 from datetime import datetime
-from typing import Annotated
+from typing import Annotated, Optional
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Response, status
 
 from fury_api.domain import paths
 from fury_api.domain.users.models import User
@@ -110,3 +111,32 @@ async def get_item(
     if not earthquake:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Earthquake not found")
     return earthquake
+
+@earthquake_router.get(paths.EARTHQUAKES_ID_IMAGE, response_model=bytes)
+async def get_ciim_geo_3d_image(
+    id_: int,
+    earthquake_service: Annotated[EarthquakesService, Depends(get_service(ServiceType.EARTHQUAKES, read_only=True, uow=Depends(get_uow_any_tenant)))],
+    delay: Optional[float] = 1,
+) -> bytes:
+    earthquake = await earthquake_service.get_item(id_)
+    if not earthquake:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Earthquake not found")
+
+    if not earthquake.ciim_geo_image_url:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="CIIM geo image not found")
+
+    try:
+        png_bytes = await earthquake_service.generate_ciim_geo_heightmap_png(
+            earthquake.ciim_geo_image_url
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+    if delay and delay > 0:
+        await asyncio.sleep(delay)
+
+    return Response(
+        content=png_bytes,
+        media_type="image/png",
+        headers={"Cache-Control": "public, max-age=86400"},
+    )

@@ -163,3 +163,29 @@ export async function getEarthquake(
     throw error
   }
 }
+
+export async function getEarthquakeHeightmap(
+  id: string | number
+): Promise<Blob> {
+  if (env.NEXT_PUBLIC_USE_MOCKS) {
+    const response = await fetch("/mock-heightmap.png")
+    if (!response.ok) {
+      throw new Error("Failed to load mock heightmap")
+    }
+    return await response.blob()
+  }
+
+  try {
+    const response = await api.get<Blob>(
+      `/earthquakes/${encodeURIComponent(String(id))}/ciim_geo_heightmap`,
+      {
+        responseType: "blob",
+        timeout: 45000,
+      }
+    )
+    return response.data
+  } catch (error) {
+    console.error(`Error getting earthquake ${id} heightmap:`, error)
+    throw error
+  }
+}
