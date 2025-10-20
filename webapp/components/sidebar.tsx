@@ -5,7 +5,7 @@ import clsx from "clsx";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { useTheme } from "next-themes";
-import { Home, Menu, ChevronsLeft, ChevronsRight, CreditCard, Sun, Moon, LogOut, ChevronsUpDown } from "lucide-react";
+import { Home, Menu, ChevronsLeft, ChevronsRight, Sun, Moon, LogOut, ChevronsUpDown } from "lucide-react";
 
 import { useAuth } from "@/lib/auth/context"
 import { Button } from "@/components/ui/button";

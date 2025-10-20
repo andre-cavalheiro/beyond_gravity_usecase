@@ -202,6 +202,17 @@ export default function LandingPage() {
           >
             Sign in with Google
           </Button>
+          <div className="w-full max-w-3xl overflow-hidden rounded-3xl border border-slate-800/60 bg-slate-950/60 shadow-2xl shadow-indigo-900/40">
+            <div className="relative aspect-video w-full">
+              <iframe
+                src="https://www.youtube.com/embed/GKOW-V0tz9c?si=9OFPrdJOAtuV3YJ4"
+                title="Beyond Gravity Demo"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                allowFullScreen
+                className="absolute inset-0 h-full w-full border-0"
+              />
+            </div>
+          </div>
         </div>
       </main>
     </div>
