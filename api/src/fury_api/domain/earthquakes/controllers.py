@@ -47,6 +47,7 @@ EARTHQUAKES_FILTERS_DEFINITION = ModelFilterAndSortDefinition(
         "event_type": get_default_ops_for_type(str),
         "detail_url": get_default_ops_for_type(str),
         "info_url": get_default_ops_for_type(str),
+        "ciim_geo_image_url": get_default_ops_for_type(str),
         "significance": get_default_ops_for_type(int),
         "tsunami": get_default_ops_for_type(bool),
         "felt_reports": get_default_ops_for_type(int),
@@ -74,6 +75,7 @@ EARTHQUAKES_FILTERS_DEFINITION = ModelFilterAndSortDefinition(
         "place",
         "status",
         "event_type",
+        "ciim_geo_image_url",
         "significance",
         "tsunami",
         "felt_reports",
@@ -91,6 +93,7 @@ EARTHQUAKES_FILTERS_DEFINITION = ModelFilterAndSortDefinition(
         "depth_km",
         "created_at",
         "last_updated_at",
+        "ciim_geo_image_url"
     },
 )
 

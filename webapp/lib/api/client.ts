@@ -101,7 +101,8 @@ export async function createOrganization(name: string): Promise<Organization> {
 
 type GetEarthquakesParams = {
   cursor?: string | null
-  filters?: Record<string, unknown>
+  filters?: string[]
+  sorts?: string[]
 }
 
 const EARTHQUAKE_PAGE_SIZE = 20
@@ -109,7 +110,7 @@ const EARTHQUAKE_PAGE_SIZE = 20
 export async function getEarthquakes(
   options?: GetEarthquakesParams
 ): Promise<PaginatedResponse<Earthquake>> {
-  const { cursor, filters } = options ?? {}
+  const { cursor, filters, sorts } = options ?? {}
 
   if (env.NEXT_PUBLIC_USE_MOCKS) {
     return {
@@ -131,20 +132,26 @@ export async function getEarthquakes(
     if (cursor) {
       searchParams.set("cursor", cursor)
     }
-    if (filters) {
-      Object.entries(filters).forEach(([key, value]) => {
-        if (value !== undefined && value !== null) {
-          searchParams.set(key, String(value))
-        }
-      })
-    }
 
-    const response = await api.get<PaginatedResponse<Earthquake>>(
-      "/earthquakes",
-      {
-        params: searchParams,
-      },
-    )
+    filters?.forEach((filter) => {
+      if (filter) {
+        searchParams.append("filters", filter)
+      }
+    })
+
+    sorts?.forEach((sort) => {
+      if (sort) {
+        searchParams.append("sorts", sort)
+      }
+    })
+
+    const queryString = searchParams.toString()
+    const url =
+      queryString.length > 0
+        ? `/earthquakes?${queryString}`
+        : "/earthquakes"
+
+    const response = await api.get<PaginatedResponse<Earthquake>>(url)
     return response.data
   } catch (error) {
     console.error("Error getting earthquakes:", error)
