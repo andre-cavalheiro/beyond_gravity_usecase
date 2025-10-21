@@ -5,7 +5,7 @@ from typing import Any, ClassVar, NamedTuple, TYPE_CHECKING
 from fury_api.core.service import SqlService
 from fury_api.core.unit_of_work import UnitOfWork
 from fury_api.lib.settings import config
-from fury_common.utils.string import snake_case_to_pascal
+from fury_api.lib.utils.string import snake_case_to_pascal
 
 
 if TYPE_CHECKING:

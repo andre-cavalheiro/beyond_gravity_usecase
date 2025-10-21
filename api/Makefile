@@ -252,7 +252,7 @@ start:
 
 .PHONY: get-token
 get-token:
-	$(PYTHON_EXECUTABLE) fury_api.scripts.generate_firebase_token
+	$(PYTHON_EXECUTABLE) -m fury_api.scripts.generate_firebase_token
 
 .PHONY: generate-system-token
 generate-system-token:

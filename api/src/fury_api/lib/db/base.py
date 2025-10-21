@@ -14,8 +14,8 @@ from sqlalchemy.orm.attributes import flag_modified
 from sqlmodel import TIMESTAMP, BigInteger, Field, SQLModel, func
 
 from fury_api.lib.settings import config
-from fury_common.utils.dicts import merge_dicts
-from fury_common.utils.string import snake_case_to_camel
+from fury_api.lib.utils.dicts import merge_dicts
+from fury_api.lib.utils.string import snake_case_to_camel
 
 __all__ = [
     "metadata",

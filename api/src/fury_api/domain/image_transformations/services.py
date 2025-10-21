@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import asyncio
-import hashlib
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 from urllib.parse import urlparse
@@ -18,9 +17,6 @@ if TYPE_CHECKING:
     pass
 
 __all__ = ["ImageTransformationsService"]
-
-CACHE_DIR = Path(__file__).resolve().parent / "cache"
-CACHE_DIR.mkdir(parents=True, exist_ok=True)
 
 
 class ImageTransformationsService(GenericService):
@@ -62,22 +58,14 @@ class ImageTransformationsService(GenericService):
             gradient_blend=gradient_blend,
         )
 
-    def _cache_path_for(self, url: str) -> Path:
-        digest = hashlib.sha1(url.encode("utf-8")).hexdigest()
-        return CACHE_DIR / f"{digest}.bin"
-
-
-    def _fetch_bytes(self, url: str, timeout: int = 30, *, use_cache: bool = True) -> bytes:
+    def _fetch_bytes(self, url: str, timeout: int = 30) -> bytes:
         """
         Download the raw bytes from a URL with a few safety checks.
+        No caching - always fetch fresh.
         """
         scheme = urlparse(url).scheme.lower()
         if scheme not in {"http", "https"}:
             raise ValueError(f"Unsupported URL scheme: {scheme}")
-
-        cache_path = self._cache_path_for(url) if use_cache else None
-        if cache_path and cache_path.exists():
-            return cache_path.read_bytes()
 
         try:
             resp = requests.get(url, timeout=timeout)
@@ -94,9 +82,6 @@ class ImageTransformationsService(GenericService):
         if len(content) > max_bytes:
             raise ValueError(f"File too large: {len(content)} bytes")
 
-        if cache_path:
-            cache_path.parent.mkdir(parents=True, exist_ok=True)
-            cache_path.write_bytes(content)
         return content
 
 
