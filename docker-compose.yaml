@@ -5,13 +5,13 @@ services:
     image: fury-api:latest
     container_name: fury-api
     build:
-      context: /Users/cavalheiro/Documents/beyond_gravity_usecase/api
-      dockerfile: /Users/cavalheiro/Documents/beyond_gravity_usecase/api/deploy/docker/fury_api.Dockerfile
+      context: ./api
+      dockerfile: ./deploy/docker/fury_api.Dockerfile
     restart: "${DOCKER_RESTART_POLICY:-unless-stopped}"
     depends_on:
       - postgres
     volumes:
-      - /Users/cavalheiro/Documents/beyond_gravity_usecase/api:/app
+      - ./api:/app
     ports:
       - "${PORT:-3000}:3000"
       - "5678:5678"
@@ -49,8 +49,8 @@ services:
   webapp:
     container_name: beyond-gravity-webapp
     build:
-      context: /Users/cavalheiro/Documents/beyond_gravity_usecase/webapp
-      dockerfile: /Users/cavalheiro/Documents/beyond_gravity_usecase/webapp/deploy/Dockerfile
+      context: ./webapp
+      dockerfile: ./deploy/Dockerfile
     restart: "${DOCKER_RESTART_POLICY:-unless-stopped}"
     ports:
       - "3001:3001"
