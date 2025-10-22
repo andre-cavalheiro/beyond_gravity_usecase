@@ -8,7 +8,7 @@ Fury API is built with **Domain-Driven Design (DDD)** and **Unit of Work (UoW)**
 
 ---
 
-## Quick Start
+## Getting Started (Local Development)
 
 ### Prerequisites
 - Python 3.11+, Docker, Make
@@ -135,7 +135,6 @@ async def create_user(self, user_data: UserCreate) -> User:
     # Transaction commits automatically on successful exit
 ```
 
-
 ### Authentication & Security
 
 **Authentication Flow:**
@@ -159,19 +158,12 @@ async def get_users(
 
 ### Pagination & Filtering
 
-**Components:** `pagination.py`, `model_filters/`
+**Pagination** (`lib/pagination.py`) uses cursor-based pagination (via fastapi-pagination) for stateless, scalable list endpoints.
 
-**Pagination** uses cursor-based pagination (via fastapi-pagination) for stateless, scalable list endpoints:
-- Avoids offset-based pagination issues (performance degradation, data inconsistency)
-- Returns `CursorPage` with next/previous cursors for navigation
-- Supports optional total count tracking (disabled by default for performance)
-
-**Model Filters** provides type-safe, declarative query filtering:
-- **Definition-based**: Each model defines allowed filter fields and operations
-- **18+ operations**: `eq`, `neq`, `gt`, `gte`, `lt`, `lte`, `in`, `nin`, `like`, `ilike`, `is_null`, `is_not_null`, and more
-- **SQL injection prevention**: All values are parameterized
-- **Authorization**: Whitelist-based field access control
-- **Type validation**: Automatic casting with validation (strings, numbers, booleans, dates, arrays)
+**Model Filters** (`lib/ model_filters/`) provides type-safe, declarative query filtering made available to all domains.
+- **Definition-based**: Each model defines allowed filter fields and operations in its controller (fields and operations are white-listed)
+- **18+ operations**: `eq`, `neq`, `gt`, `gte`, `lt`, `lte`, `in`, `nin`, `like`, `ilike`, `is_null`, `is_not_null` (their applicability varies according to the target field's data type)
+- **SQL injection prevention**: All values are parameterized and automaticly casted with validation (strings, numbers, booleans, dates, arrays)
 
 **HTTP Query Format:**
 ```
@@ -211,6 +203,8 @@ This architecture implements Dependency Injection and Factory patterns:
 - `get_uow_tenant_ro()`: Read-only variant
 - `get_uow_any_tenant()`: No tenant isolation (for public data like earthquakes)
 - `get_service()`: Creates services with UoW + auth context injected
+
+Personal note on dependencies: leveraging dependency injection, whether it's for 3rd party clients, domain services, datbase clients helps maintain clean architecture and proper separation of concerns in FastAPI projects. That's why this project has so many of it.
 
 **Request Flow Example:**
 ```

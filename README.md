@@ -298,10 +298,6 @@ This system follows a **layered, cloud-native architecture**:
       └──────────────────────┘   └────────────────────┘
 ```
 
-## Design Decisions
-
-...
-
 ## Possible Optimizations and Known Limitations
 
 1. **Real-time Updates**: Earthquakes are ingested on-demand or via scheduled tasks, not in real-time. Expect delays of minutes to hours depending on the ingestion schedule.
