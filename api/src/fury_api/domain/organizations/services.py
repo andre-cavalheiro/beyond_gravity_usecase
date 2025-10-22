@@ -1,8 +1,8 @@
 from typing import TYPE_CHECKING
 from fury_api.lib.settings import config
 
-from fury_api.core.factories.service_factory import ServiceFactory, ServiceType
-from fury_api.core.unit_of_work import UnitOfWork
+from fury_api.lib.factories.service_factory import ServiceFactory, ServiceType
+from fury_api.lib.unit_of_work import UnitOfWork
 
 from fury_api.domain.organizations.models import Organization
 from fury_api.domain.users.models import User

@@ -1,4 +1,3 @@
-from .background_tasks import AsyncBackgroundTasks, get_async_background_tasks
 from .filters import FiltersAndSortsParser, get_models_filters_parser_factory
 from .services import ServiceType, SqlService, get_service, get_service_admin
 from .clients import get_usgs_client
@@ -35,7 +34,4 @@ __all__ = [
     "ServiceType",
     "get_service",
     "get_service_admin",
-    # background tasks
-    "AsyncBackgroundTasks",
-    "get_async_background_tasks",
 ]

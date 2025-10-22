@@ -3,9 +3,9 @@ from typing import Annotated, TYPE_CHECKING
 
 from fastapi import Depends
 
-from fury_api.core.security import get_current_user
-from fury_api.core.factories import UnitOfWork, UnitOfWorkFactory
-from fury_api.core.security import get_current_organization_id
+from fury_api.lib.security import get_current_user
+from fury_api.lib.factories import UnitOfWork, UnitOfWorkFactory
+from fury_api.lib.security import get_current_organization_id
 
 if TYPE_CHECKING:
     from fury_api.domain.users.models import User

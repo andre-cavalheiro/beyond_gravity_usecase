@@ -7,7 +7,7 @@ from typing import Any, Generic, TypeVar, List, cast, TYPE_CHECKING
 
 from sqlmodel.ext.asyncio.session import AsyncSession
 
-from fury_api.core.unit_of_work import UnitOfWork
+from fury_api.lib.unit_of_work import UnitOfWork
 from fury_api.lib.db.base import BaseSQLModel
 from fury_api.lib.logging import Logger, get_logger
 from fury_api.lib.repository import GenericSqlExtendedRepository
@@ -21,7 +21,6 @@ __all__ = ["GenericService", "SqlService", "with_uow", "with_uow_class", "Servic
 
 T = TypeVar("T", bound=BaseSQLModel)
 F = TypeVar("F", bound=Callable[..., Any])
-Task = TypeVar("Task", bound=Callable[..., Any] | Awaitable[Callable[..., Any]])
 
 
 def with_uow_class(cls):
@@ -66,17 +65,10 @@ class GenericService:
         self,
         logger: Logger | None = None,
         logger_bind_allows: bool | None = None,
-        *,
-        add_task_func: Callable[[Task, Any, Any], None] | None = None,
-        use_background_tasks: bool = True,
         **kwargs: Any,
     ):
         self._allow_logger_bind = logger_bind_allows if logger_bind_allows is not None else logger is None
         self._logger = logger or get_logger(name=self.__class__.__name__)
-
-        self.tasks: list[tuple[Task, Any, Any]] = []
-        self.add_task = add_task_func or self._default_add_task
-        self.use_background_tasks = use_background_tasks
 
     @contextlib.contextmanager
     def override_attributes(self, **kwargs: Any) -> None:
@@ -104,9 +96,6 @@ class GenericService:
         if self._allow_logger_bind:
             self._logger = self._logger.bind(**kwargs)
         return self._logger
-
-    def _default_add_task(self, task: Task, *args: Any, **kwargs: Any) -> None:
-        self.tasks.append((task, args, kwargs))
 
 
 class SqlService(Generic[T], GenericService):

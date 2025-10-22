@@ -6,7 +6,7 @@ from fastapi import FastAPI
 
 from fury_api.lib import logging
 from fury_api.lib.settings import config
-from fury_api.core.factories import ClientsFactory
+from fury_api.lib.factories import ClientsFactory
 
 __all__ = ["lifespan", "on_startup", "on_shutdown"]
 

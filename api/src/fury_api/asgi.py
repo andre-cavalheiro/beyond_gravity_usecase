@@ -12,10 +12,9 @@ __all__ = ["create_app"]
 
 
 def create_app() -> FastAPI:
-    from fastapi import Depends, FastAPI
+    from fastapi import FastAPI
 
-    from fury_api.core.dependencies import get_async_background_tasks
-    from fury_api.core.lifecycle import lifespan
+    from fury_api.lib.lifecycle import lifespan
     from fury_api.lib import settings
 
     # Create app
@@ -29,9 +28,6 @@ def create_app() -> FastAPI:
         version=settings.config.openapi.VERSION,
         openapi_url=settings.config.openapi.SCHEMA_PATH,
         contact={"name": settings.config.openapi.CONTACT_NAME, "email": settings.config.openapi.CONTACT_EMAIL},
-        # Global dependencies:
-        #   - Async background task: override fastapi.BackgroundTasks forcing it be available in all routes
-        dependencies=[Depends(get_async_background_tasks)],
     )
 
     _configure_exception_handlers(app)
@@ -46,10 +42,8 @@ def create_app() -> FastAPI:
 
 
 def _configure_api(app: FastAPI) -> None:
-    from fastapi import Depends
     from fastapi_pagination import add_pagination
 
-    from fury_api.core.dependencies import get_async_background_tasks
     from fury_api.domain.routes import create_router
     from fury_api.lib.responses import MsgSpecJSONResponse
 
@@ -60,7 +54,6 @@ def _configure_api(app: FastAPI) -> None:
     app.include_router(
         create_router(),
         default_response_class=MsgSpecJSONResponse,
-        dependencies=[Depends(get_async_background_tasks)],
         include_in_schema=True,
     )
 

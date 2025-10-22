@@ -2,8 +2,8 @@ import importlib
 from enum import Enum
 from typing import Any, ClassVar, NamedTuple, TYPE_CHECKING
 
-from fury_api.core.service import SqlService
-from fury_api.core.unit_of_work import UnitOfWork
+from fury_api.lib.service import SqlService
+from fury_api.lib.unit_of_work import UnitOfWork
 from fury_api.lib.settings import config
 from fury_api.lib.utils.string import snake_case_to_pascal
 
@@ -86,8 +86,6 @@ class ServiceFactory:
             service_type (ServiceType): The type of service to create.
             uow (UnitOfWork): Unit of work instance.
             auth_user (User | None): Authenticated user, if any.
-            vault_client (VaultClient | None): Vault client, if any.
-            use_background_tasks (bool): Whether to use background tasks.
             **kwargs (Any): Additional arguments for the service constructor.
 
         Returns:

@@ -63,76 +63,165 @@ Use this to better mimick real production scenarios.
 
 ## Architecture
 
-### Tech Stack & Design Patterns
-???
+### Domains
 
-### Project Structure
+The API follows **Domain-Driven Design (DDD)** with a layered architecture. Each domain (`src/fury_api/domain/`) represents a business concept (users, organizations, earthquakes) and is self-contained with minimal cross-domain dependencies. 
 
-Fury API follows a structured design based on **Domain-Driven Design (DDD)** consisting of multiple **domains** (under `src/fury_api/domain`) this is where the core business logic of the API exists. Each domain consists of:
+```
+HTTP Request → Controller → Service → Repository → Database
+                    ↓           ↓          ↓
+                 Routes    Business    Data Access
+                           Logic
+```
 
-- **`controller`**: Responsible for handling incoming HTTP requests and their respective routing.
-  - Each function in the controller typically corresponds to an available HTTP endpoint exposed by the API (if marked by a FastAPI `APIRouter` decorator).
+**`controller.py`** - HTTP endpoint handlers
+- Maps HTTP requests to service method calls
+- Handles request validation via Pydantic models
+- Manages dependency injection (auth, services, UoW)
+- Returns HTTP responses
 
-- **`service`**: Act as the core of the business logic for the domain.
-  - Handles the main functionalities and operations related to the domain (e.g., service classes for blueprints, entities, scorecards, users, etc.).
-  - Controllers use services to execute operations. In most cases, a controller only interacts with the service of its own domain, but complex endpoints may utilize multiple services.
+**Example:**
+```python
+@router.get("/users/{id}", response_model=UserRead)
+async def get_user(
+    id: int,
+    users_service: Annotated[UsersService, Depends(get_service(ServiceType.USERS))],
+) -> User:
+    return await users_service.get_user_by_id(id)
+```
 
-- **`model`**: Represents the data structures of the domain (often mapped to database tables).
-  - Models define the schema for the domain's data and can include validation and serialization logic.
-  - They also specify the schema of objects expected and returned by the API. This enables the automatic generation of API documentation and the API client
+**`model.py`** - Data schemas
+- Defines database table structure (via SQLModel/SQLAlchemy)
+- Provides Pydantic validation for API input/output
+- Auto-generates OpenAPI documentation
+- Includes variants: `UserCreate` (input), `UserRead` (output), `User` (database model)
 
-- **`repository`**: Extends the models of the domain with specific database operations using SQLAlchemy.
-  - Handles all database interactions, serving as an abstraction layer for the database.
-  - Services utilize repositories to interact with the database. While most services only need access to their domain's repository, complex service operations may involve multiple repositories.
-  - Repositories are accessed through a **Units of Work (UoW)** (`src/fury_api/core/unit_of_work.py`), which ensures that data operations occur within a single transaction and that each endpoint can only interact with the database in the intended way (read only, tenant control, etc.).
+**`service.py`** - Business logic layer
+- Orchestrates domain operations (create user, update organization, query earthquakes)
+- Extends from `SqlService[T]` for database-backed services, which combined with our sqlalquemy pydantic models enabels standard CRUD operations out-of-the-box
+- Enforces business rules and validation
 
+**Example:**
+```python
+class UsersService(SqlService[User]):
+    @with_uow
+    async def get_user_by_id(self, id: int) -> User | None:
+        return await self.repository.get_by_id(self.session, id)
+```
 
-### Core Components
+**`repository.py`** - Data access layer
+- Extends `GenericSqlExtendedRepository[T]`, which provides type-safe CRUD, pagination, filtering, and sorting out-of-the-box, allowing repositories to focus only on domain-specific queries.
 
-### Middleware & Request Pipeline
+**Example:**
+```python
+class UserRepository(GenericSqlExtendedRepository[User]):
+    async def get_by_email(self, session: AsyncSession, email: str) -> User | None:
+        q = select(User).where(User.email == email)
+        return (await session.exec(q)).scalar_one_or_none()
+```
 
-The API uses two essential middlewares configured in `src/fury_api/asgi.py`:
+Repositories are accessed via **Unit of Work** (`lib/unit_of_work.py`), which manages database transactions (commit/rollback) thus prroviding session lifecycle management. They also enforce multi-tenancy via PostgreSQL Row-Level Security.
 
-**CORS Middleware** (`lib/cors.py`):
-- Enables cross-origin requests from web browsers
-- Currently configured to allow all origins (`["*"]`) for development flexibility
-- Essential if you have a web frontend consuming this API
-- In production, restrict `CORS_ORIGINS` to specific trusted domains
+**Example Flow:**
+```python
+# In controller - UoW injected automatically
+users_service: Annotated[UsersService, Depends(get_service(...))]
 
-**GZip Compression** (`lib/compression.py`):
-- Automatically compresses responses larger than 500 bytes
-- Uses maximum compression level (9) for optimal bandwidth savings
-- Particularly effective for large JSON responses (typical 70-80% size reduction)
-- Can be removed if you handle compression at the reverse proxy level (e.g., nginx, CloudFlare)
-
-Both middlewares are applied globally to all endpoints. Custom per-endpoint middleware is intentionally avoided to keep the request pipeline simple and predictable.
-
----
-
-The `src/fury_api/lib/` directory contains shared infrastructure and utilities used across domains:
-
-- **`settings.py`**: Centralized configuration management using Pydantic. All environment variables and application settings are defined here with type safety and validation.
-
-- **`db/`**: Database infrastructure including SQLAlchemy base models, session management, and Alembic migrations. The `base.py` module provides a `BaseDBModel` that all domain models inherit from, offering automatic JSON serialization with camelCase conversion and PATCH update functionality.
-
-- **`exceptions.py`**: Custom exception hierarchy for consistent error handling across the API. All exceptions map to appropriate HTTP status codes and response formats.
-
-- **`responses.py`**: Custom response classes using `msgspec` for fast JSON serialization (significantly faster than standard JSON libraries).
-
-- **`jwt.py` / `firebase.py`**: Authentication infrastructure for token validation and Firebase integration.
-
-- **`cors.py` / `compression.py`**: Middleware configurations for cross-origin requests and response compression.
-
-- **`logging.py`**: Structured logging setup with request context tracking.
-
-- **`utils/`**: Minimal utility functions that are actively used:
-  - `dicts.py`: Dictionary manipulation (`dict_renamer` for token translation, `merge_dicts` for PATCH operations)
-  - `string.py`: Case conversion helpers (`snake_case_to_camel`, `snake_case_to_pascal`) used for API response formatting and dynamic class loading
-
-The library has been intentionally kept lean—only components that serve a clear, active purpose remain.
+# In service - @with_uow manages transaction
+@with_uow
+async def create_user(self, user_data: UserCreate) -> User:
+    user = User(**user_data.dict())
+    return await self.repository.add(self.session, user)
+    # Transaction commits automatically on successful exit
+```
 
 
-### Database & Migrations
+### Authentication & Security
+
+**Authentication Flow:**
+```
+Request → Extract Bearer token → Validate (Firebase/System/Override) →
+Extract user claims → Database lookup → Verify organization →
+Inject auth_user into services
+```
+
+**Multi-Tenancy**: The authentication system extracts `organization_id` from the authenticated user and passes it to the Unit of Work, which enforces Row-Level Security (RLS) at the PostgreSQL level. This ensures data isolation between organizations without application-level filtering.
+
+**Usage in Controllers:**
+```python
+@router.get("/users")
+async def get_users(
+    current_user: Annotated[User, Depends(get_current_user)]  # Auth required
+) -> list[User]:
+    # current_user is fully validated and includes organization_id
+    ...
+```
+
+### Pagination & Filtering
+
+**Components:** `pagination.py`, `model_filters/`
+
+**Pagination** uses cursor-based pagination (via fastapi-pagination) for stateless, scalable list endpoints:
+- Avoids offset-based pagination issues (performance degradation, data inconsistency)
+- Returns `CursorPage` with next/previous cursors for navigation
+- Supports optional total count tracking (disabled by default for performance)
+
+**Model Filters** provides type-safe, declarative query filtering:
+- **Definition-based**: Each model defines allowed filter fields and operations
+- **18+ operations**: `eq`, `neq`, `gt`, `gte`, `lt`, `lte`, `in`, `nin`, `like`, `ilike`, `is_null`, `is_not_null`, and more
+- **SQL injection prevention**: All values are parameterized
+- **Authorization**: Whitelist-based field access control
+- **Type validation**: Automatic casting with validation (strings, numbers, booleans, dates, arrays)
+
+**HTTP Query Format:**
+```
+GET /api/earthquakes?filters=magnitude:gte:5.0&filters=location:like:California&sorts=magnitude:desc
+```
+
+**Usage in Controllers:**
+```python
+@router.get("/earthquakes")
+async def list_earthquakes(
+    filters_parser: Annotated[
+        FiltersAndSortsParser,
+        Depends(get_models_filters_parser_factory(EARTHQUAKES_FILTERS_DEFINITION))
+    ],
+) -> CursorPage[Earthquake]:
+    return await service.get_items_paginated(
+        model_filters=filters_parser.filters,
+        model_sorts=filters_parser.sorts
+    )
+```
+
+The system transforms HTTP query parameters into type-safe SQLAlchemy filters, validated against a declarative schema.
+
+### Dependencies, Factories
+
+**Components:** `dependencies/`, `factories/`
+
+This architecture implements Dependency Injection and Factory patterns:
+
+**Factories** create instances dynamically:
+- `ServiceFactory`: Uses reflection to instantiate services by type (e.g., `ServiceType.USERS` → `UsersService`)
+- `UnitOfWorkFactory`: Creates UoW (unit of work) instances with appropriate session factories (read-only vs read-write)
+- `ClientsFactory`: Creates external client instances (USGS API, etc.)
+
+**Dependencies** compose FastAPI injectable functions:
+- `get_uow_tenant()`: Creates UoW (unit of work) scoped to current user's organization (write access)
+- `get_uow_tenant_ro()`: Read-only variant
+- `get_uow_any_tenant()`: No tenant isolation (for public data like earthquakes)
+- `get_service()`: Creates services with UoW + auth context injected
+
+**Request Flow Example:**
+```
+Controller endpoint → Depends(get_service(ServiceType.USERS, read_only=True))
+  → get_uow_tenant_ro() → Creates UoW with organization_id
+  → get_current_user() → Validates auth, extracts org_id
+  → ServiceFactory.create_service() → Instantiates UsersService(uow, auth_user)
+  → Service method → Repository CRUD → PostgreSQL (RLS enforced)
+```
+
+## Database & Migrations
 
 Fury API has a tightly integrated data model using **SQLAlchemy**, which serves as both the **Object Relational Mapper (ORM)** and schema definition tool. This ensures that business logic and database interactions remain structured and scalable.
 

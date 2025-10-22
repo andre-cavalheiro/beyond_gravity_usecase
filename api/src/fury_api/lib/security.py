@@ -7,7 +7,7 @@ from fury_api.lib.exceptions import UnauthorizedError
 from fury_api.lib.jwt import JWT
 from fury_api.lib.settings import config
 from fury_api.lib.utils.dicts import dict_renamer
-from fury_api.core.factories import ServiceFactory, ServiceType, UnitOfWork, UnitOfWorkFactory
+from fury_api.lib.factories import ServiceFactory, ServiceType, UnitOfWork, UnitOfWorkFactory
 from fury_api.domain.users.services import UsersService
 
 if TYPE_CHECKING:

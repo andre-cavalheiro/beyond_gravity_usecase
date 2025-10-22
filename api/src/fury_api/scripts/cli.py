@@ -12,7 +12,7 @@ from urllib.parse import urlparse
 
 from fastapi_pagination.api import set_page, set_params
 
-from fury_api.core.factories import UnitOfWorkFactory
+from fury_api.lib.factories import UnitOfWorkFactory
 from fury_api.domain.earthquakes.models import Earthquake
 from fury_api.domain.earthquakes.services import EarthquakesService
 from fury_api.domain.image_transformations.services import ImageTransformationsService

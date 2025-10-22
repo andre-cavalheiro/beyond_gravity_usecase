@@ -6,7 +6,7 @@ from fastapi import APIRouter, Depends, HTTPException, Response, status
 
 from fury_api.domain import paths
 from fury_api.domain.users.models import User
-from fury_api.core.dependencies import (
+from fury_api.lib.dependencies import (
     FiltersAndSortsParser,
     ServiceType,
     get_models_filters_parser_factory,
@@ -24,7 +24,7 @@ from .models import (
     IngestPayload,
     IngestResponse,
 )
-from fury_api.core.security import get_current_user
+from fury_api.lib.security import get_current_user
 from fury_api.lib.db.base import Identifier
 from fury_api.lib.pagination import CursorPage
 from .services import EarthquakesService

@@ -4,14 +4,14 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException, Security, Request, status
 
 from fury_api.domain import paths
-from fury_api.core.dependencies import (
+from fury_api.lib.dependencies import (
     get_service,
     get_uow,
     get_uow_any_tenant,
     get_uow_ro,
 )
 from fury_api.lib.settings import config
-from fury_api.core.factories.service_factory import ServiceType
+from fury_api.lib.factories.service_factory import ServiceType
 from fury_api.domain.organizations import exceptions, services
 from fury_api.domain.users.models import User
 from fury_api.domain.organizations.models import (
@@ -19,8 +19,8 @@ from fury_api.domain.organizations.models import (
     OrganizationCreate,
     OrganizationRead,
 )
-from fury_api.core.security import get_current_user, get_current_user_new_organization
-from fury_api.core.unit_of_work import UnitOfWork
+from fury_api.lib.security import get_current_user, get_current_user_new_organization
+from fury_api.lib.unit_of_work import UnitOfWork
 from fury_api.domain.users.services import UsersService
 
 user_auth_router = APIRouter(dependencies=[Security(get_current_user)])

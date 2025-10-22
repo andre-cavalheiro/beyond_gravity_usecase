@@ -2,13 +2,13 @@ import uuid
 from collections.abc import Generator
 from typing import TYPE_CHECKING, Any
 
-from fury_api.core.service import SqlService, with_uow
-from fury_api.core.unit_of_work import UnitOfWork
+from fury_api.lib.service import SqlService, with_uow
+from fury_api.lib.unit_of_work import UnitOfWork
 from fury_api.domain.users import exceptions
 from fury_api.domain.users.models import User, UserStatus
 from fury_api.domain.users.utils import generate_system_user_name
 from fury_api.lib.pagination import CursorPage
-from fury_api.core import security
+from fury_api.lib import security
 
 if TYPE_CHECKING:
     pass

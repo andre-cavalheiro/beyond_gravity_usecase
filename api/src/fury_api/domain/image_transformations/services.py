@@ -9,8 +9,8 @@ import cv2
 import numpy as np
 import requests
 
-from fury_api.core.service import GenericService
-from fury_api.core.unit_of_work import UnitOfWork
+from fury_api.lib.service import GenericService
+from fury_api.lib.unit_of_work import UnitOfWork
 from fury_api.domain.users.models import User
 
 if TYPE_CHECKING:

@@ -12,8 +12,8 @@ import numpy as np
 import requests
 
 from .models import Earthquake
-from fury_api.core.service import SqlService, with_uow
-from fury_api.core.unit_of_work import UnitOfWork
+from fury_api.lib.service import SqlService, with_uow
+from fury_api.lib.unit_of_work import UnitOfWork
 from fury_api.domain.users.models import User
 from fury_api.lib.model_filters import Filter, Sort
 from fury_api.lib.pagination import CursorPage

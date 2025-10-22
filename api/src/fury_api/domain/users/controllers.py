@@ -3,8 +3,8 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException, Security, status
 
 from fury_api.domain import paths
-from fury_api.core.dependencies import ServiceType, get_service, get_uow_any_tenant, get_uow_tenant_ro
-from fury_api.core.security import get_current_user, get_user_from_token
+from fury_api.lib.dependencies import ServiceType, get_service, get_uow_any_tenant, get_uow_tenant_ro
+from fury_api.lib.security import get_current_user, get_user_from_token
 from fury_api.domain.users.models import (
     User,
     UserReadProvisional,

@@ -4,8 +4,8 @@ from sqlalchemy import select
 from sqlalchemy.exc import InterfaceError, OperationalError
 
 from fury_api.domain import paths
-from fury_api.core.dependencies.unit_of_work import get_uow_any_tenant
-from fury_api.core.unit_of_work import UnitOfWork
+from fury_api.lib.dependencies.unit_of_work import get_uow_any_tenant
+from fury_api.lib.unit_of_work import UnitOfWork
 from fury_api.lib.logging import get_logger
 
 _logger = get_logger(__name__)

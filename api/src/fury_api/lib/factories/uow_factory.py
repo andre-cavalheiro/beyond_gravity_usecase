@@ -1,4 +1,4 @@
-from fury_api.core.unit_of_work import UnitOfWork
+from fury_api.lib.unit_of_work import UnitOfWork
 from fury_api.lib.db import async_session, async_session_ro
 from fury_api.lib.settings import config
 
