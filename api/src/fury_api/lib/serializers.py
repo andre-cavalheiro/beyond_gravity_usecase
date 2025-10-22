@@ -22,11 +22,3 @@ def json_serializer(obj: Any) -> bytes:
 
 def json_deserializer(obj: str | bytes) -> Any:
     return msgspec.json.decode(obj, dec_hook=_default_dec_hook)
-
-
-def msgpack_serializer(obj: Any) -> bytes:
-    return msgspec.msgpack.encode(obj)
-
-
-def msgpack_deserializer(obj: bytes) -> Any:
-    return msgspec.msgpack.decode(obj)

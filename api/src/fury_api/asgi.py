@@ -38,7 +38,6 @@ def create_app() -> FastAPI:
     _configure_middlewares(
         app,
         service_name=settings.config.app.NAME,
-        enable_profiling=settings.config.server.PROFILING_ENABLED,
     )
     _configure_api(app)
     _openapi_schema_override(app)
@@ -146,13 +145,8 @@ def _configure_exception_handlers(app: FastAPI) -> None:
     app.add_exception_handler(Exception, _handle_any_exception)
 
 
-def _configure_middlewares(app: FastAPI, *, service_name: str, enable_profiling: bool = False) -> None:
+def _configure_middlewares(app: FastAPI, *, service_name: str) -> None:
     from fury_api.lib import compression, cors
-    from fury_api.middleware.profiling_middleware import ProfilingMiddleware
-
-    # (Optional) Profiling middleware
-    if enable_profiling:
-        app.add_middleware(ProfilingMiddleware)
 
     # Base middlewares
     app.add_middleware(**cors.middleware_config)

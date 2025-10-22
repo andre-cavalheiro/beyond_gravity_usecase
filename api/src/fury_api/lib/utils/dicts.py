@@ -41,35 +41,3 @@ def merge_dicts(dict1: dict[str, Any], dict2: dict[str, Any]) -> dict[str, Any]:
         else:
             dict1[key] = value
     return dict1
-
-
-def hash_dict(d: dict[str, Any]) -> str:
-    """Hashes a dictionary.
-
-    Args:
-        d (dict[str, Any]): The dictionary to hash.
-
-    Returns:
-        str: The hashed dictionary.
-    """
-    return json.dumps(d, sort_keys=True)
-
-
-def hash_dict_unsafe(d: dict[str, Any]) -> bytes:
-    """Unsafe hashing function for dictionaries that only supports string keys.
-
-    Args:
-        d (dict[str, Any]): The dictionary to hash.
-
-    Returns:
-        bytes: The hashed dictionary.
-
-    Raises:
-        ImportError: If msgspec is not installed.
-    """
-    try:
-        import msgspec
-    except ImportError:
-        raise ImportError("hash_dict_unsafe requires msgspec to be installed")
-
-    return msgspec.json.encode(d, order="sorted")

@@ -1,3 +1,3 @@
-from . import datetime, dicts, string
+from . import dicts, string
 
-__all__ = ["datetime", "dicts", "string"]
+__all__ = ["dicts", "string"]
