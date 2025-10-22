@@ -35,13 +35,3 @@ repos:
     rev: v3.2.0
     hooks:
       - id: creosote
-
-  - repo: local
-    hooks:
-      - id: tests
-        name: run tests
-        entry: make test
-        language: system
-        types: [python]
-        pass_filenames: false
-        always_run: true
