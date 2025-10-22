@@ -1,99 +1,194 @@
 # Fury API
 
-## Introduction
+## Overview
 
-Fury API is an API built with robust software architecture principles. It tightly integrates with the underlying data model, ensuring that data schemas and migrations are centrally managed and applied through the API itself. This design follows **Domain-Driven Design (DDD)** principles, which focus on structuring the API around real-world business concepts. Additionally, it employs the **Unit of Work (UoW)** pattern, ensuring that all database operations occur within a single transactional context, minimizing inconsistencies and maintaining integrity.
+Fury API is built with **Domain-Driven Design (DDD)** and **Unit of Work (UoW)** patterns, tightly integrating with its data model to centrally manage schemas, migrations, and transactional integrity. It's cloud-native and ready for **containerized deployments** with Docker, Helm, and Kubernetes configurations. Operations are streamlined via `make` commands to minimize manual intervention.
 
-The API is built for cloud-native environments and is fully prepared for **containerized deployments**. It includes configurations for **Docker image building**, **Helm chart packaging**, and **Kubernetes deployment**. Development operations, database management, and deployments are streamlined using `make` commands to minimize manual intervention and reduce errors.
+**Tech Stack:** FastAPI, PostgreSQL, SQLAlchemy, Firebase Auth, Docker, Kubernetes
 
 ---
 
-## Getting Started (Local Development)
+## Quick Start
 
-### Environment Setup
+### Prerequisites
+- Python 3.11+, Docker, Make
 
-Before running the API locally, ensure all dependencies are installed:
+### Run Locally (5 minutes)
+1. `make install` (install poetry and project dependencies)
+2. Create `.env` (copy from `.env.example`) see how to configure firebase [here](../README.md#firebase-configuration).
+3. `docker-compose up postgres -d` (launch database in the background) 
+4. `make db-migrate` (run database migrations)
+4. `make start`
+5. Visit http://localhost:3000/docs
 
-```bash
-make install
-```
-
-This will:
-- Install the necessary dependencies via Poetry.
-- Set up a dedicated Python virtual environment.
-- Install pre-commit hooks to enforce code quality.
-
-Next, prepare your environment by creating a `.env` file based on the `.env.example` template.
-
-### Launching the Database
-
-Start the PostgreSQL database instance using Docker:
-
-```bash
-docker-compose up postgres -d
-```
-
-If this is the first time running the database, it will be empty. You need to apply initial database schema and policies:
-
-```bash
-make db-migrate
-```
-
-This command runs Alembic migrations, ensuring that the database structure aligns with the latest schema definitions in the codebase.
-
-### Launching the API
-
-You can start the API in one of two ways:
-
-#### Using Docker
+Alternatively, you can just use docker-compose - you'll still need to perform step 2 (create `.env`) for it to work.
 
 ```bash
 docker-compose up fury-api -d
 ```
 
-#### Running the API Natively
+### Authentication
 
-If you prefer to run the API directly from your machine, activate the virtual environment and execute it manually:
+The API requires Firebase authentication for all endpoints. For local development, you have two options:
 
-```bash
-# With Make
-make start
+#### Option 1: Skip Authentication (Recommended for Local Dev)
 
-# Or manually
-source .venv/bin/activate
-cd src
-python -m fury_api
-```
-
-### Testing the Setup
-
-Ensure the API is up and running:
+Bypass token validation entirely by setting a mock user identity in `.env`:
 
 ```bash
-curl http://localhost:3000/api/v1/health
+FURY_API_DEVEX_ENABLED=true
+FURY_API_DEVEX_AUTH_OVERRIDE_ENABLED=true
+FURY_API_DEVEX_AUTH_OVERRIDE_USER_NAME=Test User
+FURY_API_DEVEX_AUTH_OVERRIDE_USER_EMAIL=test@example.com
+FURY_API_DEVEX_AUTH_OVERRIDE_ORGANIZATION_ID=org_123
+FURY_API_DEVEX_AUTH_OVERRIDE_USER_ID=user_123
+FURY_API_DEVEX_AUTH_OVERRIDE_FIREBASE_USER_ID=firebase_123
 ```
 
-Verify the API can successfully connect to the database:
+All requests will be authenticated as this mock user. Use this for rapid development.
+
+#### Option 2: Generate Real Firebase Tokens
+Test actual authentication flows using a Firebase user:
 
 ```bash
-curl http://localhost:3000/api/v1/health/velini
+# In .env
+FURY_API_DEVEX_ENABLED=true
+FURY_API_DEVEX_TOKEN_GENERATION_FIREBASE_USER_ID=your_firebase_user_id
+
+# Generate token (valid for 1 hour)
+make get-token
 ```
 
-If these checks fail, verify that your `.env` file is properly set up and the database is running.
+Use this to better mimick real production scenarios.
+
+## Architecture
+
+### Tech Stack & Design Patterns
+???
+
+### Project Structure
+
+Fury API follows a structured design based on **Domain-Driven Design (DDD)** consisting of multiple **domains** (under `src/fury_api/domain`) this is where the core business logic of the API exists. Each domain consists of:
+
+- **`controller`**: Responsible for handling incoming HTTP requests and their respective routing.
+  - Each function in the controller typically corresponds to an available HTTP endpoint exposed by the API (if marked by a FastAPI `APIRouter` decorator).
+
+- **`service`**: Act as the core of the business logic for the domain.
+  - Handles the main functionalities and operations related to the domain (e.g., service classes for blueprints, entities, scorecards, users, etc.).
+  - Controllers use services to execute operations. In most cases, a controller only interacts with the service of its own domain, but complex endpoints may utilize multiple services.
+
+- **`model`**: Represents the data structures of the domain (often mapped to database tables).
+  - Models define the schema for the domain's data and can include validation and serialization logic.
+  - They also specify the schema of objects expected and returned by the API. This enables the automatic generation of API documentation and the API client
+
+- **`repository`**: Extends the models of the domain with specific database operations using SQLAlchemy.
+  - Handles all database interactions, serving as an abstraction layer for the database.
+  - Services utilize repositories to interact with the database. While most services only need access to their domain's repository, complex service operations may involve multiple repositories.
+  - Repositories are accessed through a **Units of Work (UoW)** (`src/fury_api/core/unit_of_work.py`), which ensures that data operations occur within a single transaction and that each endpoint can only interact with the database in the intended way (read only, tenant control, etc.).
+
+
+### Core Components
+
+### Middleware & Request Pipeline
+
+The API uses two essential middlewares configured in `src/fury_api/asgi.py`:
+
+**CORS Middleware** (`lib/cors.py`):
+- Enables cross-origin requests from web browsers
+- Currently configured to allow all origins (`["*"]`) for development flexibility
+- Essential if you have a web frontend consuming this API
+- In production, restrict `CORS_ORIGINS` to specific trusted domains
+
+**GZip Compression** (`lib/compression.py`):
+- Automatically compresses responses larger than 500 bytes
+- Uses maximum compression level (9) for optimal bandwidth savings
+- Particularly effective for large JSON responses (typical 70-80% size reduction)
+- Can be removed if you handle compression at the reverse proxy level (e.g., nginx, CloudFlare)
+
+Both middlewares are applied globally to all endpoints. Custom per-endpoint middleware is intentionally avoided to keep the request pipeline simple and predictable.
 
 ---
 
-## Deploying to a Kubernetes Cluster
+The `src/fury_api/lib/` directory contains shared infrastructure and utilities used across domains:
 
-### Deployment Workflow
+- **`settings.py`**: Centralized configuration management using Pydantic. All environment variables and application settings are defined here with type safety and validation.
 
-A full deployment can be executed with:
+- **`db/`**: Database infrastructure including SQLAlchemy base models, session management, and Alembic migrations. The `base.py` module provides a `BaseDBModel` that all domain models inherit from, offering automatic JSON serialization with camelCase conversion and PATCH update functionality.
 
+- **`exceptions.py`**: Custom exception hierarchy for consistent error handling across the API. All exceptions map to appropriate HTTP status codes and response formats.
+
+- **`responses.py`**: Custom response classes using `msgspec` for fast JSON serialization (significantly faster than standard JSON libraries).
+
+- **`jwt.py` / `firebase.py`**: Authentication infrastructure for token validation and Firebase integration.
+
+- **`cors.py` / `compression.py`**: Middleware configurations for cross-origin requests and response compression.
+
+- **`logging.py`**: Structured logging setup with request context tracking.
+
+- **`utils/`**: Minimal utility functions that are actively used:
+  - `dicts.py`: Dictionary manipulation (`dict_renamer` for token translation, `merge_dicts` for PATCH operations)
+  - `string.py`: Case conversion helpers (`snake_case_to_camel`, `snake_case_to_pascal`) used for API response formatting and dynamic class loading
+
+The library has been intentionally kept lean—only components that serve a clear, active purpose remain.
+
+
+### Database & Migrations
+
+Fury API has a tightly integrated data model using **SQLAlchemy**, which serves as both the **Object Relational Mapper (ORM)** and schema definition tool. This ensures that business logic and database interactions remain structured and scalable.
+
+Database schema changes are managed using **Alembic**, which generates versioned migration scripts to evolve the database structure over time. Alembic tracks schema changes and allows for both **forward** and **rollback** operations, ensuring safe database modifications.
+
+When modifying the data model (e.g., adding new tables or fields), generate a new migration script:
+```bash
+make m='describe your migration' db-create-migration
+```
+This will create a new migration file inside `src/fury_api/lib/db/migrations/versions/`, where you can customize the database changes if necessary.
+
+Apply all pending migrations to bring the database schema up to date:
+```bash
+make db-migrate
+```
+This command ensures the schema reflects the latest changes defined in the migration scripts.
+
+If a migration introduces an issue, you can revert the last migration:
+```bash
+make rollback
+```
+This will undo the most recent migration, restoring the previous state of the schema. Rollbacks are critical for avoiding disruptions when deploying database changes to production environments so when developing a new migration make sure the rollback logic is also sound.
+
+#### Understanding Alembic Under the Hood
+
+Alembic operates through its **configuration file** (`alembic.ini`) and an **environment script** (`env.py`). When you run a `make db-...` command, it effectively invokes Alembic under the hood, applying migrations using the configured **FURY_DB_URL** as the database connection.
+
+## Development Guides
+
+### Adding a new Domain
+
+Besides building the domain, you'll need to add references to it in `src/fury_api/domain/routes.py (router)`, `src/fury_api/core/unit_of_work:52 (_repos mapper)`, and (possibly if other domain need to use the new domains service) `src/fury_api/core/factories/service_factory:15 (ServiceType Enum)`
+
+### Configuration Management
+
+Configuration settings are managed in `src/fury_api/lib/settings.py`. The `.env` file provides runtime settings for local development, while Kubernetes secrets store sensitive information in production.
+
+## Deployment 
+
+You can deploy to a Kubernetes cluster using:
 ```bash
 make deploy
 ```
 
-Alternatively, you can perform individual deployment steps manually:
+Make sure to adjust the following variables in your Makefile
+```yaml
+DOCKER_IMAGE
+DOCKERFILE_PATH
+KUBERNETES_CLUSTER
+KUBERNETES_NAMESPACE
+PROD_SECRETS_FILE
+HELM_CHART_NAME
+HELM_CHART_PATH
+```
+
+Under the hood this is the sequence of steps that happen:
 
 1. **Ensure Kubernetes Context**
 
@@ -163,148 +258,3 @@ Alternatively, you can perform individual deployment steps manually:
    curl http://localhost:3000/api/v1/health
    ```
 
-
-
----
-
-## Development
-
-### Project Structure
-
-Fury API follows a structured design based on **Domain-Driven Design (DDD)** consisting of multiple **domains** (under `src/fury_api/domain`) each encapsulating a specific business function. Each domain consists of:
-
-- **`controller`**: Responsible for handling incoming HTTP requests and their respective routing.
-  - Each function in the controller typically corresponds to an available HTTP endpoint exposed by the API (if marked by a FastAPI `APIRouter` decorator).
-
-- **`service`**: Act as the core of the business logic for the domain.
-  - Handles the main functionalities and operations related to the domain (e.g., service classes for blueprints, entities, scorecards, users, etc.).
-  - Controllers use services to execute operations. In most cases, a controller only interacts with the service of its own domain, but complex endpoints may utilize multiple services.
-
-- **`model`**: Represents the data structures of the domain (often mapped to database tables).
-  - Models define the schema for the domain's data and can include validation and serialization logic.
-  - They also specify the schema of objects expected and returned by the API. This enables the automatic generation of API documentation and the API client
-
-- **`repository`**: Extends the models of the domain with specific database operations using SQLAlchemy.
-  - Handles all database interactions, serving as an abstraction layer for the database.
-  - Services utilize repositories to interact with the database. While most services only need access to their domain's repository, complex service operations may involve multiple repositories.
-  - Repositories are accessed through a **Units of Work (UoW)** (`src/fury_api/core/unit_of_work.py`), which ensures that data operations occur within a single transaction and that each endpoint can only interact with the database in the intended way (read only, tenant control, etc.).
-
-### Configuration Management
-
-Configuration settings are managed in `src/fury_api/lib/settings.py`. The `.env` file provides runtime settings for local development, while Kubernetes secrets store sensitive information in production.
-
-### Adding a new Domain
-
-Besides building the domain, you'll need to add references to it in `src/fury_api/domain/routes.py (router)`, `src/fury_api/core/unit_of_work:52 (_repos mapper)`, and (possibly if other domain need to use the new domains service) `src/fury_api/core/factories/service_factory:15 (ServiceType Enum)`
-
-
-### Data Model and Database
-
-Fury API has a tightly integrated data model using **SQLAlchemy**, which serves as both the **Object Relational Mapper (ORM)** and schema definition tool. This ensures that business logic and database interactions remain structured and scalable.
-
-#### Schema Management and Migrations
-
-Database schema changes are managed using **Alembic**, which generates versioned migration scripts to evolve the database structure over time. Alembic tracks schema changes and allows for both **forward** and **rollback** operations, ensuring safe database modifications.
-
-When modifying the data model (e.g., adding new tables or fields), generate a new migration script:
-```bash
-make m='describe your migration' db-create-migration
-```
-This will create a new migration file inside `src/fury_api/lib/db/migrations/versions/`, where you can customize the database changes if necessary.
-
-Apply all pending migrations to bring the database schema up to date:
-```bash
-make db-migrate
-```
-This command ensures the schema reflects the latest changes defined in the migration scripts.
-
-If a migration introduces an issue, you can revert the last migration:
-```bash
-make rollback
-```
-This will undo the most recent migration, restoring the previous state of the schema. Rollbacks are critical for avoiding disruptions when deploying database changes to production environments so when developing a new migration make sure the rollback logic is also sound.
-
-#### Understanding Alembic Under the Hood
-
-Alembic operates through its **configuration file** (`alembic.ini`) and an **environment script** (`env.py`). When you run a `make db-...` command, it effectively invokes Alembic under the hood, applying migrations using the configured **FURY_DB_URL** as the database connection.
-
-## Testing
-
-Run all tests:
-```bash
-make test
-```
-
-Database migrations can be tested with a temporary database (this does not guarantee the outcome is exactly as intended, just that the migration script works):
-```bash
-make test
-```
-
-### Making Requests
-
-#### API Documentation
-
-The API exposes its complete schema at **`/docs`**, which is automatically generated by **Swagger UI** and powered by **Pydantic models**. This ensures the documentation is always guaranteed to be up to date with your codebase. From this interactive documentation page, you can:
-- View all available endpoints and their schemas
-- See request/response examples
-- **Directly perform HTTP requests** without leaving the page
-
-Access the local documentation at (or inspect the live deployed documentation [here](https://api-beyond-gravity.cavalheiro.io/docs).):
-```
-http://localhost:3000/api/v1/docs
-```
-
-#### Using Insomnia
-
-Alternatively, you can use **Insomnia** (an HTTP client similar to Postman) with the pre-configured export included in the repository:
-
-1. Download and install [Insomnia](https://insomnia.rest/)
-2. Import the collection: `Insomnia_2025-10-20.yaml`
-3. All endpoints and environment variables are pre-configured and ready to use
-
-The export comes with environments ready for local development or prod interactions.
-
-#### Authentication Token
-
-To interact with the API, you'll need a valid authentication token from a valid user. You can obtain one by running:
-```bash
-make get-token
-```
-
-Disclaimer: for this to work you'll need a firebase user id set with `FURY_API_DEVEX_TOKEN_GENERATION_FIREBASE_USER_ID`.
-
-This token will be valid for 1 hour, which is the maximum duration allowed by Firebase.
-
-Before using this command, ensure that the following environment variables are configured:
-```bash
-FURY_API_DEVEX_ENABLED=true
-FURY_API_DEVEX_TOKEN_GENERATION_FIREBASE_USER_ID=your_firebase_user_id
-```
-Replace `your_firebase_user_id` with the appropriate Firebase User ID.
-
-Alternatively, you can skip token validation for purely development purposes with the following configuration:
-```bash
-FURY_API_DEVEX_ENABLED=true
-FURY_API_DEVEX_AUTH_OVERRIDE_ENABLED=true
-FURY_API_DEVEX_AUTH_OVERRIDE_USER_NAME=...
-FURY_API_DEVEX_AUTH_OVERRIDE_USER_EMAIL=...
-FURY_API_DEVEX_AUTH_OVERRIDE_ORGANIZATION_ID=...
-FURY_API_DEVEX_AUTH_OVERRIDE_USER_ID=...
-FURY_API_DEVEX_AUTH_OVERRIDE_FIREBASE_USER_ID=...
-```
-
----
-
-## Debugging And Problem Solving
-
-- Restart API to apply changes:
-  ```bash
-  kubectl rollout restart deployment fury-api
-  ```
-- Connect to the database directly:
-  ```bash
-  kubectl exec -it fury-api-postgresql-0 -- psql -U postgres
-- Get prod logs
-   ```
-   make prod-logs
-  ```

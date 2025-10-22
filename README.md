@@ -17,8 +17,6 @@ Built with **FastAPI** (backend), **Next.js** (frontend), **PostgreSQL** (databa
 
 # Setup
 
-Paste the provided `.env` in `api/` and `.env.local` in `webapp/` (this is REQUIRED for **ANYTHING** to work locally)!
-
 # Run with Docker
 
 ## Prerequisites
@@ -74,6 +72,7 @@ For detailed information about the API, including architecture, deployment, test
 # Frontend
 
 For detailed information about the web application, see [webapp/README.md](./webapp/README.md).
+
 
 # CLI
 
@@ -132,6 +131,92 @@ The script changes into `api/`, sets `PYTHONPATH=src`, and delegates to `python 
   - etc
 - Environment variables from `api/.env` are still respected because the script runs inside the API project root.
 
+
+# Firebase Configuration
+
+This application uses **Firebase Authentication** for user management. Before running the application locally or deploying it, you need to set up a Firebase project and configure the required environment variables.
+
+## Step 1: Create a Firebase Project
+
+If you don't already have a Firebase project:
+
+1. Go to the [Firebase Console](https://console.firebase.google.com/)
+2. Click **Add project** (or select an existing one)
+3. Follow the setup wizard to create your project
+
+## Step 2: Obtain Service Account Credentials (Required for API)
+
+The backend API requires Firebase Admin SDK credentials to verify authentication tokens:
+
+1. **Navigate to Project Settings:**
+   - Click on the **⚙️ Gear Icon** in the left menu
+   - Select **Project settings**
+
+2. **Go to the "Service accounts" Tab:**
+   - Click on the **Service accounts** tab
+   - Scroll down and click **Generate new private key**
+   - Click **Generate key** in the confirmation dialog
+
+3. **Download the JSON file:**
+   - A `.json` file will be downloaded containing your service account credentials
+   - This file contains sensitive information - **never commit it to version control**
+
+4. **Extract the following values for your API `.env` file:**
+   ```bash
+   FURY_FIREBASE_PROJECT_ID=<project_id>
+   FURY_FIREBASE_PRIVATE_KEY_ID=<private_key_id>
+   FURY_FIREBASE_PRIVATE_KEY=<private_key>
+   FURY_FIREBASE_CLIENT_EMAIL=<client_email>
+   FURY_FIREBASE_CLIENT_ID=<client_id>
+   FURY_FIREBASE_CLIENT_X509_CERT_URL=<client_x509_cert_url>
+   ```
+
+## Step 3: Obtain Web API Key (Required for Webapp)
+
+The frontend webapp needs the Firebase Web API key for client-side authentication:
+
+1. **Navigate to Project Settings:**
+   - Click on the **⚙️ Gear Icon** in the left menu
+   - Select **Project settings**
+
+2. **Go to the "General" Tab:**
+   - Scroll down to the **"Your apps"** section
+   - If you already have a web app, click on it to find the configuration
+   - If not, click **Add app** → Choose **Web** (</>) and register your app
+
+3. **Copy the Firebase SDK configuration:**
+   - Look for the **"Firebase SDK snippet"** section
+   - Select **"Config"** format
+   - You'll see something like:
+     ```javascript
+     const firebaseConfig = {
+       apiKey: "AIza...",
+       authDomain: "your-project.firebaseapp.com",
+       projectId: "your-project",
+       // ... other fields
+     };
+     ```
+
+4. **Extract the following values for your webapp `.env.local` file:**
+   ```bash
+   NEXT_PUBLIC_FIREBASE_API_KEY=<apiKey>
+   NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=<authDomain>
+   NEXT_PUBLIC_FIREBASE_PROJECT_ID=<projectId>
+   ```
+
+5. **Also add the API Web Key to your API `.env` file:**
+   ```bash
+   FURY_FIREBASE_WEB_API_KEY=<apiKey>  # Same value as NEXT_PUBLIC_FIREBASE_API_KEY
+   ```
+
+## Step 4: Enable Authentication Methods
+
+Enable the authentication methods you want to use:
+
+1. In the Firebase Console, go to **Authentication** in the left menu
+2. Click on the **Sign-in method** tab
+3. Enable Google as the only authentication providers (this system as is, is only prepared for Google) 
+
 # Data Model
 
 The project uses a relational database (PostgreSQL) to manage core entities. Here's an overview of the key tables:
@@ -170,7 +255,7 @@ Database schema changes are managed through **Alembic migrations**. For detailed
 
 ## System Architecture
 
-Beyond Gravity follows a **layered, cloud-native architecture**:
+This system follows a **layered, cloud-native architecture**:
 
 ```
 ┌─────────────────────────────────────────────┐
@@ -215,40 +300,7 @@ Beyond Gravity follows a **layered, cloud-native architecture**:
 
 ## Design Decisions
 
-### Backend: FastAPI + Domain-Driven Design
-
-**Why FastAPI?**
-- High performance (comparable to Go/Rust frameworks)
-- Automatic API documentation (Swagger/OpenAPI)
-- Built-in data validation via Pydantic
-- Native async/await support for I/O operations
-- Excellent type hints for developer experience
-
-**Why Domain-Driven Design?**
-- Clear separation of concerns across business domains (earthquakes, users, organizations)
-- Scalability: adding new domains doesn't affect existing ones
-- Testability: each domain can be tested independently
-- Maintainability: business logic is isolated and explicit
-- Per-domain repositories, services, and controllers
-
-**Why Unit of Work Pattern?**
-- Ensures transactional consistency across all database operations
-- Prevents partial updates in case of failures
-- Enforces database operation policies (read-only endpoints, etc.)
-
-### Frontend: Next.js + React
-
-**Why Next.js?**
-- Excellent developer experience (mostly this)
-- Built-in API routes (could support backend operations if needed)
-
-### Authentication: Firebase
-
-**Why Firebase?**
-- No infrastructure overhead for authentication
-- Google OAuth integration out-of-the-box
-- JWT tokens for stateless API authentication
-- Scalable without managing user sessions
+...
 
 ## Possible Optimizations and Known Limitations
 
